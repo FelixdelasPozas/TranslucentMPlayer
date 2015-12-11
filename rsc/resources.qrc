@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/TranslucentMPlayer">
+    <file>film.ico</file>
+	<file>film.svg</file>
+  </qresource>
+</RCC>
