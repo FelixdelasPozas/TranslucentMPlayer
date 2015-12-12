@@ -2,5 +2,7 @@
   <qresource prefix="/TranslucentMPlayer">
     <file>film.ico</file>
 	<file>film.svg</file>
+	<file>config.svg</file>
+	<file>folder.svg</file>
   </qresource>
 </RCC>

@@ -1,0 +1,81 @@
+/*
+ File: TranslucentMPlayer.h
+ Created on: 11/12/2015
+ Author: Felix de las Pozas Alvarez
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef TRANSLUCENTMPLAYER_H_
+#define TRANSLUCENTMPLAYER_H_
+
+// Qt
+#include <QMainWindow>
+#include <QString>
+#include <QPoint>
+#include <QSystemTrayIcon>
+
+/** \class TranslucentMPlayer
+ * \brief Main application.
+ *
+ */
+class TranslucentMPlayer
+{
+    Q_OBJECT
+  public:
+    /** \brief TranslucentMPlayer class constructor.
+     *
+     */
+    explicit TranslucentMPlayer();
+
+    /** \brief TranslucentMPlayer class virtual destructor.
+     *
+     */
+    virtual ~TranslucentMPlayer();
+
+    /** \brief Executes the main loop.
+     *
+     */
+    void run();
+
+  private:
+    /** \brief Loads settings from ini file.
+     *
+     */
+    void loadSettings();
+
+    /** \brief Saves settings to ini file.
+     *
+     */
+    void saveSettings();
+
+  private slots:
+
+  private:
+    static const QString SETTINGS_FILENAME;
+    static const QString KEY_MPLAYER_PATH;
+    static const QString KEY_OPACITY;
+    static const QString KEY_VOLUME;
+    static const QString KEY_POSITION;
+
+    QString m_playerPath;   /** absolute path of the mplayer executable.   */
+    int     m_volume;       /** volume level in [0-100].                   */
+    int     m_opacity;      /** opacity level in [0-100].                  */
+    QPoint  m_position;     /** top-left corner coordinates the the video. */
+
+    QSystemTrayIcon m_icon; /** application tray icon. */
+
+};
+
+#endif // TRANSLUCENTMPLAYER_H_

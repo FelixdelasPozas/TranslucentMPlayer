@@ -58,6 +58,7 @@ qt5_add_resources(RESOURCES
 
 qt5_wrap_ui(CORE_UI
   # .ui for Qt
+  ConfigurationDialog.ui
 )
 	
 set (CORE_SOURCES
@@ -67,6 +68,8 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   Main.cpp
+  ConfigurationDialog.cpp
+  TranslucentMPlayer.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

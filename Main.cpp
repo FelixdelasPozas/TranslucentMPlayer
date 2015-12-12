@@ -18,6 +18,7 @@
  */
 
 // Project
+#include "TranslucentMPlayer.h"
 
 // Qt
 #include <QApplication>
@@ -35,7 +36,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 //  QString output = QString("[%1] %2 (%3:%4 -> %5)").arg( symbols[type] ).arg( msg ).arg(context.file).arg(context.line).arg(context.function);
   QString output = QString("[%1] %2").arg( symbols[type] ).arg( msg );
   std::cerr << output.toStdString() << std::endl;
-  if( type == QtFatalMsg ) abort();
+  if(type == QtFatalMsg) abort();
 }
 
 //-----------------------------------------------------------------
@@ -44,16 +45,15 @@ int main(int argc, char *argv[])
   qInstallMessageHandler(myMessageOutput);
 
   QApplication app(argc, argv);
-  app.setQuitOnLastWindowClosed(false);
 
   // allow only one instance
   QSharedMemory guard;
-  guard.setKey("MultiAlarm");
+  guard.setKey("TranslucentMPlayer");
 
   if (!guard.create(1))
   {
     QMessageBox msgBox;
-    msgBox.setWindowIcon(QIcon(":/TranslucentMPlayer/film.ico"));
+    msgBox.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.setText("TranslucentMPlayer is already running!");
     msgBox.setStandardButtons(QMessageBox::Ok);
@@ -61,9 +61,11 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  auto resultValue = app.exec();
+  TranslucentMPlayer player;
+  player.run();
 
-  return resultValue;
+  return 0;
 }
 
+//-----------------------------------------------------------------
 
