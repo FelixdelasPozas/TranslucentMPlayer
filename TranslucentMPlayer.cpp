@@ -20,10 +20,14 @@
 // Project
 #include "TranslucentMPlayer.h"
 #include "ConfigurationDialog.h"
+#include "AboutDialog.h"
 
 // Qt
+#include <QFileDialog>
 #include <QSettings>
 #include <QFileInfo>
+#include <QMenu>
+#include <QDebug>
 
 const QString TranslucentMPlayer::SETTINGS_FILENAME = "TranslucentMPlayer.ini";
 const QString TranslucentMPlayer::KEY_MPLAYER_PATH  = "MPlayer executable path";
@@ -33,8 +37,26 @@ const QString TranslucentMPlayer::KEY_POSITION      = "Position";
 
 //-----------------------------------------------------------------
 TranslucentMPlayer::TranslucentMPlayer()
+: m_icon {QIcon(":TranslucentMPlayer/film.svg"), this}
 {
   loadSettings();
+
+  auto menu = new QMenu{};
+
+  auto config = new QAction{QIcon{":TranslucentMPlayer/config.svg"}, tr("Configure..."), menu};
+  auto about  = new QAction{QIcon{":TranslucentMPlayer/film.svg"},   tr("About..."),     menu};
+  auto quit   = new QAction{QIcon{":TranslucentMPlayer/exit.svg"},   tr("Quit"),         menu};
+
+  connect(config, SIGNAL(triggered(bool)), this, SLOT(onConfigTriggered()));
+  connect(about,  SIGNAL(triggered(bool)), this, SLOT(onAboutTriggered()));
+  connect(quit,   SIGNAL(triggered(bool)), this, SLOT(onExitTriggered()));
+
+  menu->addAction(config);
+  menu->addSeparator();
+  menu->addAction(about);
+  menu->addAction(quit);
+
+  m_icon.setContextMenu(menu);
 }
 
 //-----------------------------------------------------------------
@@ -44,23 +66,61 @@ TranslucentMPlayer::~TranslucentMPlayer()
 }
 
 //-----------------------------------------------------------------
-void TranslucentMPlayer::run()
+bool TranslucentMPlayer::start()
 {
   auto mplayerFile = QFileInfo{m_playerPath};
 
   if(!mplayerFile.isExecutable() || !mplayerFile.isReadable())
   {
-    ConfigurationDialog conf;
-    conf.setMplayerPath(m_playerPath);
-
-    if(conf.exec() != QDialog::Accepted)
-    {
-      return;
-    }
-
-    m_playerPath = conf.mplayerPath();
+    onConfigTriggered();
   }
 
+  QFileDialog openDialog;
+  openDialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+  openDialog.setWindowTitle(tr("Open media file"));
+  openDialog.setDirectory(QDir::currentPath());
+  openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  openDialog.setReadOnly(true);
+  openDialog.setLabelText(QFileDialog::Accept, tr("Open Video"));
+  openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
+  openDialog.setFileMode(QFileDialog::ExistingFile);
+
+  auto fileName = QFileDialog::getOpenFileNames(nullptr, tr("Open media file"), QDir::currentPath(), tr("Media files (*.*)"), nullptr, QFileDialog::ReadOnly);
+
+  if(fileName.isEmpty())
+  {
+    return false;
+  }
+
+  m_icon.show();
+  return true;
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onAboutTriggered()
+{
+  AboutDialog about;
+  about.exec();
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onExitTriggered()
+{
+  m_icon.hide();
+
+  emit finished();
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onConfigTriggered()
+{
+  ConfigurationDialog conf;
+  conf.setMplayerPath(m_playerPath);
+
+  if(conf.exec() == QDialog::Accepted)
+  {
+    m_playerPath = conf.mplayerPath();
+  }
 }
 
 //-----------------------------------------------------------------

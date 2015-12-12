@@ -25,6 +25,8 @@
 #include <QSharedMemory>
 #include <QMessageBox>
 #include <QIcon>
+#include <QEventLoop>
+#include <QDebug>
 
 // C++
 #include <iostream>
@@ -45,6 +47,7 @@ int main(int argc, char *argv[])
   qInstallMessageHandler(myMessageOutput);
 
   QApplication app(argc, argv);
+  app.setQuitOnLastWindowClosed(false);
 
   // allow only one instance
   QSharedMemory guard;
@@ -62,10 +65,18 @@ int main(int argc, char *argv[])
   }
 
   TranslucentMPlayer player;
-  player.run();
+  auto started = player.start();
 
-  return 0;
+  int returnValue = 0;
+
+  if(started)
+  {
+    QEventLoop loop;
+    loop.connect(&player, SIGNAL(finished()),
+                 &loop,   SLOT(quit()));
+
+    returnValue = loop.exec();
+  }
+
+  return returnValue;
 }
-
-//-----------------------------------------------------------------
-

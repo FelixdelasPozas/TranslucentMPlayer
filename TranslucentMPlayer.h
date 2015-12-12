@@ -21,16 +21,19 @@
 #define TRANSLUCENTMPLAYER_H_
 
 // Qt
-#include <QMainWindow>
 #include <QString>
 #include <QPoint>
 #include <QSystemTrayIcon>
+#include <QWaitCondition>
+#include <QMutex>
+#include <QObject>
 
 /** \class TranslucentMPlayer
  * \brief Main application.
  *
  */
 class TranslucentMPlayer
+: public QObject
 {
     Q_OBJECT
   public:
@@ -44,10 +47,30 @@ class TranslucentMPlayer
      */
     virtual ~TranslucentMPlayer();
 
-    /** \brief Executes the main loop.
+    /** \brief Ask for configuration if needed and starts the video play and widgets.
+     *         Returns true on a successful start and false otherwise.
      *
      */
-    void run();
+    bool start();
+
+  signals:
+    void finished();
+
+  private slots:
+    /** \brief Shows the about dialog.
+     *
+     */
+    void onAboutTriggered();
+
+    /** \brief Exits the application.
+     *
+     */
+    void onExitTriggered();
+
+    /** \brief Shows the configuration dialog.
+     *
+     */
+    void onConfigTriggered();
 
   private:
     /** \brief Loads settings from ini file.
@@ -60,9 +83,6 @@ class TranslucentMPlayer
      */
     void saveSettings();
 
-  private slots:
-
-  private:
     static const QString SETTINGS_FILENAME;
     static const QString KEY_MPLAYER_PATH;
     static const QString KEY_OPACITY;
@@ -75,7 +95,6 @@ class TranslucentMPlayer
     QPoint  m_position;     /** top-left corner coordinates the the video. */
 
     QSystemTrayIcon m_icon; /** application tray icon. */
-
 };
 
 #endif // TRANSLUCENTMPLAYER_H_

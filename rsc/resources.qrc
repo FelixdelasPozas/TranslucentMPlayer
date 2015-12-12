@@ -4,5 +4,7 @@
 	<file>film.svg</file>
 	<file>config.svg</file>
 	<file>folder.svg</file>
+	<file>qt.ico</file>
+	<file>exit.svg</file>
   </qresource>
 </RCC>
