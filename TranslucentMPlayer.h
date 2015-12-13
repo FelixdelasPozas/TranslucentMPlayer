@@ -28,6 +28,9 @@
 #include <QMutex>
 #include <QObject>
 
+class QProcess;
+class PlayerManager;
+
 /** \class TranslucentMPlayer
  * \brief Main application.
  *
@@ -73,6 +76,12 @@ class TranslucentMPlayer
     void onConfigTriggered();
 
   private:
+    /** \brief Plays the given file.
+     * \param[in] fileName file absolute file path.
+     *
+     */
+    void play(const QString &fileName);
+
     /** \brief Loads settings from ini file.
      *
      */
@@ -89,12 +98,13 @@ class TranslucentMPlayer
     static const QString KEY_VOLUME;
     static const QString KEY_POSITION;
 
-    QString m_playerPath;   /** absolute path of the mplayer executable.   */
-    int     m_volume;       /** volume level in [0-100].                   */
-    int     m_opacity;      /** opacity level in [0-100].                  */
-    QPoint  m_position;     /** top-left corner coordinates the the video. */
-
-    QSystemTrayIcon m_icon; /** application tray icon. */
+    QString         m_playerPath; /** absolute path of the mplayer executable.   */
+    int             m_volume;     /** volume level in [0-100].                   */
+    int             m_opacity;    /** opacity level in [0-100].                  */
+    QPoint          m_position;   /** top-left corner coordinates the the video. */
+    QStringList     m_playList;   /** list of media files to play secuentially.  */
+    PlayerManager  *m_manager;    /** player manager.                            */
+    QSystemTrayIcon m_icon;       /** application tray icon.                     */
 };
 
 #endif // TRANSLUCENTMPLAYER_H_

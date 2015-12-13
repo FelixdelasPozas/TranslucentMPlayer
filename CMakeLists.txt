@@ -72,6 +72,8 @@ set (CORE_SOURCES
   ConfigurationDialog.cpp
   TranslucentMPlayer.cpp
   AboutDialog.cpp
+  DesktopWidget.cpp
+  PlayerManager.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

@@ -20,13 +20,17 @@
 // Project
 #include "TranslucentMPlayer.h"
 #include "ConfigurationDialog.h"
+#include "DesktopWidget.h"
 #include "AboutDialog.h"
+#include "PlayerManager.h"
 
 // Qt
 #include <QFileDialog>
 #include <QSettings>
 #include <QFileInfo>
 #include <QMenu>
+#include <QProcess>
+
 #include <QDebug>
 
 const QString TranslucentMPlayer::SETTINGS_FILENAME = "TranslucentMPlayer.ini";
@@ -37,7 +41,8 @@ const QString TranslucentMPlayer::KEY_POSITION      = "Position";
 
 //-----------------------------------------------------------------
 TranslucentMPlayer::TranslucentMPlayer()
-: m_icon {QIcon(":TranslucentMPlayer/film.svg"), this}
+: m_manager{nullptr}
+, m_icon   {QIcon(":TranslucentMPlayer/film.svg"), this}
 {
   loadSettings();
 
@@ -85,14 +90,17 @@ bool TranslucentMPlayer::start()
   openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
   openDialog.setFileMode(QFileDialog::ExistingFile);
 
-  auto fileName = QFileDialog::getOpenFileNames(nullptr, tr("Open media file"), QDir::currentPath(), tr("Media files (*.*)"), nullptr, QFileDialog::ReadOnly);
+  m_playList = QFileDialog::getOpenFileNames(nullptr, tr("Open media file"), QDir::currentPath(), tr("Media files (*.*)"), nullptr, QFileDialog::ReadOnly);
 
-  if(fileName.isEmpty())
+  if(m_playList.isEmpty())
   {
     return false;
   }
 
   m_icon.show();
+
+  play(m_playList.first());
+
   return true;
 }
 
@@ -120,6 +128,16 @@ void TranslucentMPlayer::onConfigTriggered()
   if(conf.exec() == QDialog::Accepted)
   {
     m_playerPath = conf.mplayerPath();
+  }
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::play(const QString &fileName)
+{
+  if(!m_manager)
+  {
+    m_manager = new PlayerManager(m_playerPath);
+    m_manager->play(fileName);
   }
 }
 
