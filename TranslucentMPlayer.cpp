@@ -30,8 +30,7 @@
 #include <QFileInfo>
 #include <QMenu>
 #include <QProcess>
-
-#include <QDebug>
+#include <QMessageBox>
 
 const QString TranslucentMPlayer::SETTINGS_FILENAME = "TranslucentMPlayer.ini";
 const QString TranslucentMPlayer::KEY_MPLAYER_PATH  = "MPlayer executable path";
@@ -48,16 +47,24 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   auto menu = new QMenu{};
 
-  auto config = new QAction{QIcon{":TranslucentMPlayer/config.svg"}, tr("Configure..."), menu};
-  auto about  = new QAction{QIcon{":TranslucentMPlayer/film.svg"},   tr("About..."),     menu};
-  auto quit   = new QAction{QIcon{":TranslucentMPlayer/exit.svg"},   tr("Quit"),         menu};
+  auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"}, tr("Add file to playlist..."), menu};
+  auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"}, tr("Configure..."),            menu};
+  auto about  = new QAction{QIcon{":/TranslucentMPlayer/film.svg"},   tr("About..."),                menu};
+  auto quit   = new QAction{QIcon{":/TranslucentMPlayer/exit.svg"},   tr("Quit"),                    menu};
 
+  connect(open,   SIGNAL(triggered(bool)), this, SLOT(openMediaFile()));
   connect(config, SIGNAL(triggered(bool)), this, SLOT(onConfigTriggered()));
   connect(about,  SIGNAL(triggered(bool)), this, SLOT(onAboutTriggered()));
   connect(quit,   SIGNAL(triggered(bool)), this, SLOT(onExitTriggered()));
 
-  menu->addAction(config);
+  m_playListMenu = new QMenu{"Playlist"};
+  m_playListMenu->setIcon(QIcon{":/TranslucentMPlayer/list.svg"});
+
+  menu->addAction(open);
   menu->addSeparator();
+  menu->addMenu(m_playListMenu);
+  menu->addSeparator();
+  menu->addAction(config);
   menu->addAction(about);
   menu->addAction(quit);
 
@@ -68,6 +75,11 @@ TranslucentMPlayer::TranslucentMPlayer()
 TranslucentMPlayer::~TranslucentMPlayer()
 {
   saveSettings();
+
+  if(m_icon.isVisible())
+  {
+    m_icon.hide();
+  }
 }
 
 //-----------------------------------------------------------------
@@ -80,28 +92,124 @@ bool TranslucentMPlayer::start()
     onConfigTriggered();
   }
 
-  QFileDialog openDialog;
-  openDialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
-  openDialog.setWindowTitle(tr("Open media file"));
-  openDialog.setDirectory(QDir::currentPath());
-  openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
-  openDialog.setReadOnly(true);
-  openDialog.setLabelText(QFileDialog::Accept, tr("Open Video"));
-  openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
-  openDialog.setFileMode(QFileDialog::ExistingFile);
-
-  m_playList = QFileDialog::getOpenFileNames(nullptr, tr("Open media file"), QDir::currentPath(), tr("Media files (*.*)"), nullptr, QFileDialog::ReadOnly);
+  openMediaFile();
 
   if(m_playList.isEmpty())
   {
     return false;
   }
 
-  m_icon.show();
-
-  play(m_playList.first());
-
   return true;
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::openMediaFile()
+{
+  QFileDialog openDialog;
+  openDialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+  openDialog.setWindowTitle(tr("Open media file"));
+  openDialog.setDirectory(QDir::currentPath());
+  openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  openDialog.setReadOnly(true);
+  openDialog.setNameFilter(tr("Media files (*.*)"));
+  openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
+  openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
+  openDialog.setFileMode(QFileDialog::ExistingFiles);
+
+  openDialog.exec();
+
+  auto files = openDialog.selectedFiles();
+  if(files.isEmpty())
+  {
+    return;
+  }
+
+  QStringList invalidFiles, validFiles;
+
+  for(auto file: files)
+  {
+    if(m_playList.contains(file))
+    {
+      invalidFiles << file;
+      continue;
+    }
+
+    m_playList << file;
+    validFiles << file;
+
+    auto info = QFileInfo{file};
+
+    auto fileAction = new QAction{info.baseName(), m_playListMenu};
+    fileAction->setCheckable(true);
+
+    connect(fileAction, SIGNAL(triggered()), this, SLOT(onPlaylistItemTriggered()));
+
+    m_playListMenu->addAction(fileAction);
+  }
+
+  if(!invalidFiles.isEmpty())
+  {
+    QMessageBox dialog;
+    dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+    dialog.setWindowTitle(tr("Files already in the playlist"));
+    dialog.setIcon(QMessageBox::Information);
+
+    auto message = tr("Can't add the following files, they're already in the playlist.\n\n");
+    for (auto file : invalidFiles)
+    {
+      auto info = QFileInfo
+      { file };
+      message += "- " + info.baseName() + "\n";
+    }
+
+    dialog.setText(message);
+    dialog.exec();
+  }
+
+  if(!validFiles.isEmpty())
+  {
+    if(!m_icon.isVisible())
+    {
+      m_icon.show();
+    }
+
+    if(!m_manager || !m_manager->isPlaying())
+    {
+      auto file = validFiles.first();
+      int pos = m_playList.indexOf(file);
+
+      m_playListMenu->actions().at(pos)->setChecked(true);
+
+      play(file);
+    }
+  }
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onPlaylistItemTriggered()
+{
+  auto action = qobject_cast<QAction *>(sender());
+
+  auto menuActions = m_playListMenu->actions();
+
+  int index = 0;
+  for(int i = 0; i < menuActions.size(); ++i)
+  {
+    if(menuActions[i] == action)
+    {
+      action->setChecked(true);
+      index = i;
+    }
+    else
+    {
+      if(menuActions[i]->isChecked())
+      {
+        menuActions[i]->setChecked(false);
+      }
+    }
+  }
+
+  play(m_playList.at(index));
 }
 
 //-----------------------------------------------------------------
@@ -137,8 +245,9 @@ void TranslucentMPlayer::play(const QString &fileName)
   if(!m_manager)
   {
     m_manager = new PlayerManager(m_playerPath);
-    m_manager->play(fileName);
   }
+
+  m_manager->play(fileName);
 }
 
 //-----------------------------------------------------------------

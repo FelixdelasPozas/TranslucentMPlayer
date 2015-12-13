@@ -36,17 +36,21 @@ PlayerManager::PlayerManager(const QString &playerPath)
 //-----------------------------------------------------------------
 PlayerManager::~PlayerManager()
 {
-  if(m_process.isOpen())
-  {
-    m_process.write("quit\n");
-    m_process.waitForFinished(-1);
-    m_process.close();
-  }
+  stop();
 }
 
 //-----------------------------------------------------------------
 void PlayerManager::play(const QString& fileName)
 {
+  if(m_file == fileName && isPlaying()) return;
+
+  m_file = fileName;
+
+  if(isPlaying())
+  {
+    stop();
+  }
+
   QStringList arguments;
   arguments << "-slave";
   arguments << "-vo";
@@ -67,6 +71,17 @@ void PlayerManager::play(const QString& fileName)
   arguments << fileName;
 
   m_process.start(m_playerPath, arguments);
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::stop()
+{
+  if(isPlaying())
+  {
+    m_process.write("quit\n");
+    m_process.waitForFinished(-1);
+    m_process.close();
+  }
 }
 
 //-----------------------------------------------------------------
@@ -102,3 +117,8 @@ void PlayerManager::onOutputAvailable()
   }
 }
 
+//-----------------------------------------------------------------
+bool PlayerManager::isPlaying() const
+{
+  return m_process.isOpen();
+}

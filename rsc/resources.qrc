@@ -6,5 +6,6 @@
 	<file>folder.svg</file>
 	<file>qt.ico</file>
 	<file>exit.svg</file>
+	<file>list.svg</file>
   </qresource>
 </RCC>

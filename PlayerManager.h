@@ -53,6 +53,16 @@ class PlayerManager
      */
     void play(const QString &fileName);
 
+    /** \brief Returns true if there is a video currently playing.
+     *
+     */
+    bool isPlaying() const;
+
+    /** \brief Stops the current play.
+     *
+     */
+    void stop();
+
   private slots:
     /** \brief Manages mplayer errors.
      *
@@ -65,9 +75,10 @@ class PlayerManager
     void onOutputAvailable();
 
   private:
-    const QString m_playerPath;    /** mplayer executable absolute path. */
-    QProcess      m_process;       /** mplayer process.                  */
-    DesktopWidget m_desktopWidget; /** desktop widget for video display. */
+    const QString m_playerPath;    /** mplayer executable absolute path.           */
+    QProcess      m_process;       /** mplayer process.                            */
+    DesktopWidget m_desktopWidget; /** desktop widget for video display.           */
+    QString       m_file;          /** currently playing file or empty if stopped. */
 };
 
 #endif // PLAYERMANAGER_H_
