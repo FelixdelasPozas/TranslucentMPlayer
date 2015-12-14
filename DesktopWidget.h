@@ -63,6 +63,12 @@ class DesktopWidget
      */
     void setVideoSize(const QSize &size);
 
+    /** \brief Enables/disables widget dragging.
+     * \param[in] value true to enable and false otherwise.
+     *
+     */
+    void enableDrag(bool value);
+
   signals:
     void beingDragged();
 

@@ -86,6 +86,11 @@ class TranslucentMPlayer
      */
     void onPlaylistItemTriggered();
 
+    /** \brief Shows the video settings dialog.
+     *
+     */
+    void onVideoSettingsTriggered();
+
   private:
     /** \brief Plays the given file.
      * \param[in] fileName file absolute file path.

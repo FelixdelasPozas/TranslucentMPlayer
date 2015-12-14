@@ -60,6 +60,7 @@ qt5_wrap_ui(CORE_UI
   # .ui for Qt
   ConfigurationDialog.ui
   AboutDialog.ui
+  VideoConfigurationDialog.ui
 )
 	
 set (CORE_SOURCES
@@ -74,6 +75,7 @@ set (CORE_SOURCES
   AboutDialog.cpp
   DesktopWidget.cpp
   PlayerManager.cpp
+  VideoConfigurationDialog.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

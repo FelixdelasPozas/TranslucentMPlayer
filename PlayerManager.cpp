@@ -21,11 +21,26 @@
 #include "PlayerManager.h"
 #include "DesktopWidget.h"
 
+// Qt
+#include <QDir>
+#include <QDebug>
+
 //-----------------------------------------------------------------
 PlayerManager::PlayerManager(const QString &playerPath)
-: m_playerPath   {playerPath}
-, m_process      {this}
-, m_desktopWidget{false, nullptr}
+: m_playerPath      {playerPath}
+, m_process         {this}
+, m_desktopWidget   {false, nullptr}
+, m_opacity         {60}
+, m_volume          {100}
+, m_size            {100}
+, m_brightness      {0}
+, m_contrast        {0}
+, m_gamma           {0}
+, m_hue             {0}
+, m_saturation      {0}
+, m_subtitlesEnabled{false}
+, m_videoWidth      {0}
+, m_videoHeight     {0}
 {
   connect(&m_process, SIGNAL(readyReadStandardError()),
           this,      SLOT(onErrorAvailable()));
@@ -54,7 +69,7 @@ void PlayerManager::play(const QString& fileName)
   QStringList arguments;
   arguments << "-slave";
   arguments << "-vo";
-  arguments << "direct3d";
+  arguments << "gl";
   arguments << "-ao";
   arguments << "win32";
   arguments << "-cache";
@@ -78,9 +93,15 @@ void PlayerManager::stop()
 {
   if(isPlaying())
   {
-    m_process.write("quit\n");
-    m_process.waitForFinished(-1);
+    m_process.write("stop\n");
+    m_process.write("quit 0\n");
+    m_process.waitForBytesWritten(-1);
     m_process.close();
+
+    if(isPlaying())
+    {
+      m_process.kill();
+    }
   }
 }
 
@@ -88,7 +109,178 @@ void PlayerManager::stop()
 void PlayerManager::onErrorAvailable()
 {
   auto data = m_process.readAllStandardError();
-  // TODO: manage error
+  qDebug() << QString().fromLocal8Bit(data);
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::opacity() const
+{
+  return m_opacity;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setOpacity(int value)
+{
+  if(m_opacity != value)
+  {
+    m_opacity = value;
+
+    m_desktopWidget.setOpacity(value);
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::volume() const
+{
+  return m_volume;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setVolume(int value)
+{
+  if(m_volume != value)
+  {
+    m_volume = value;
+
+    m_process.write(QString("volume %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::size() const
+{
+  return m_size;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setSize(int value)
+{
+  if(m_size != value)
+  {
+    m_size = value;
+
+    auto ratio = value/100.0;
+    m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::brightness() const
+{
+  return m_brightness;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setBrightness(int value)
+{
+  if(m_brightness != value)
+  {
+    m_brightness = value;
+
+    m_process.write(QString("brightness %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::contrast() const
+{
+  return m_contrast;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setContrast(int value)
+{
+  if(m_contrast != value)
+  {
+    m_contrast = value;
+
+    m_process.write(QString("contrast %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::gamma() const
+{
+  return m_gamma;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setGamma(int value)
+{
+  if(m_gamma != value)
+  {
+    m_gamma = value;
+
+    m_process.write(QString("gamma %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::hue() const
+{
+  return m_hue;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setHue(int value)
+{
+  if(m_hue != value)
+  {
+    m_hue = value;
+
+    m_process.write(QString("hue %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::saturation() const
+{
+  return m_saturation;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setSaturation(int value)
+{
+  if(m_saturation != value)
+  {
+    m_saturation = value;
+
+    m_process.write(QString("saturation %1 1\n").arg(value).toUtf8());
+  }
+}
+
+//-----------------------------------------------------------------
+bool PlayerManager::subtitlesEnabled() const
+{
+  return m_subtitlesEnabled;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::enableSubtitles(bool value)
+{
+  if(m_subtitlesEnabled != value)
+  {
+    m_subtitlesEnabled = value;
+
+    if(m_subtitlesEnabled)
+    {
+      auto info = QFileInfo{m_file};
+      auto path = QDir{info.absolutePath()};
+
+      QStringList filters;
+      filters << "*.srt" << "*.sub" << "*.ssa" << "*.ass" << "*.idx" << "*.txt" << "*.smi" << "*.rt" << "*.utf" << "*.aqt";
+
+      auto subtitles = path.entryList(filters, QDir::Readable|QDir::Files);
+      auto subFile = path.absoluteFilePath(subtitles.first()); //.replace('/', QDir::separator());
+
+      m_process.write(QString("sub_load %1\n").arg(subFile).toUtf8());
+      m_process.write("sub_select 0\n");
+    }
+    else
+    {
+      m_process.write("sub_select -1\n");
+    }
+  }
 }
 
 //-----------------------------------------------------------------
@@ -109,8 +301,11 @@ void PlayerManager::onOutputAvailable()
       auto resolution = parts[2].split('x');
       if(!resolution.isEmpty())
       {
+        m_videoWidth  = resolution[0].toInt();
+        m_videoHeight = resolution[1].toInt();
+
         m_desktopWidget.hide();
-        m_desktopWidget.setVideoSize(QSize{resolution[0].toInt(), resolution[1].toInt()});
+        m_desktopWidget.setVideoSize(QSize{m_videoWidth, m_videoHeight});
         m_desktopWidget.show();
       }
     }

@@ -7,5 +7,6 @@
 	<file>qt.ico</file>
 	<file>exit.svg</file>
 	<file>list.svg</file>
+	<file>videoconfig.svg</file>
   </qresource>
 </RCC>

@@ -36,10 +36,7 @@ DesktopWidget::DesktopWidget(bool dragEnable, QWidget *parent)
   setAttribute(Qt::WA_AlwaysStackOnTop);
   setAttribute(Qt::WA_NoSystemBackground);
 
-  if(dragEnable)
-  {
-    setWindowFlags(windowFlags() & ~Qt::WindowTransparentForInput);
-  }
+  enableDrag(dragEnable);
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -56,7 +53,7 @@ DesktopWidget::DesktopWidget(bool dragEnable, QWidget *parent)
 //-----------------------------------------------------------------
 void DesktopWidget::mousePressEvent(QMouseEvent* e)
 {
-  if(underMouse() && e->button() == Qt::MouseButton::LeftButton)
+  if(m_dragEnable && underMouse() && e->button() == Qt::MouseButton::LeftButton)
   {
     m_point = e->globalPos();
 
@@ -72,7 +69,7 @@ void DesktopWidget::mousePressEvent(QMouseEvent* e)
 //-----------------------------------------------------------------
 void DesktopWidget::mouseReleaseEvent(QMouseEvent* e)
 {
-  if(underMouse() && e->button() == Qt::MouseButton::LeftButton)
+  if(m_dragEnable && underMouse() && e->button() == Qt::MouseButton::LeftButton)
   {
     m_point -= e->globalPos();
     setPosition(pos()-m_point);
@@ -89,7 +86,7 @@ void DesktopWidget::mouseReleaseEvent(QMouseEvent* e)
 //-----------------------------------------------------------------
 void DesktopWidget::mouseMoveEvent(QMouseEvent* e)
 {
-  if(m_buttonDown)
+  if(m_dragEnable && m_buttonDown)
   {
     m_point -= e->globalPos();
     setPosition(pos()-m_point);
@@ -137,6 +134,19 @@ void DesktopWidget::setVideoSize(const QSize& size)
 
   setGeometry(QRect(0,0, size.width(), size.height()));
   // TODO: set position again?
+}
+
+//-----------------------------------------------------------------
+void DesktopWidget::enableDrag(bool value)
+{
+  if(value)
+  {
+    setWindowFlags(windowFlags() & ~Qt::WindowTransparentForInput);
+  }
+  else
+  {
+    setWindowFlags(windowFlags() | Qt::WindowTransparentForInput);
+  }
 }
 
 //-----------------------------------------------------------------

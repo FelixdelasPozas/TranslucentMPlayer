@@ -23,6 +23,7 @@
 #include "DesktopWidget.h"
 #include "AboutDialog.h"
 #include "PlayerManager.h"
+#include "VideoConfigurationDialog.h"
 
 // Qt
 #include <QFileDialog>
@@ -52,13 +53,15 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   auto menu = new QMenu{};
 
-  auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"}, tr("Add files to playlist..."), menu};
-  auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"}, tr("Configure..."),            menu};
-  auto about  = new QAction{QIcon{":/TranslucentMPlayer/film.svg"},   tr("About..."),                menu};
-  auto quit   = new QAction{QIcon{":/TranslucentMPlayer/exit.svg"},   tr("Quit"),                    menu};
+  auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"},      tr("Add files to playlist..."), menu};
+  auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"},      tr("Configure..."),             menu};
+  auto video  = new QAction{QIcon{":/TranslucentMPlayer/videoconfig.svg"}, tr("Video Settings..."),        menu};
+  auto about  = new QAction{QIcon{":/TranslucentMPlayer/film.svg"},        tr("About..."),                 menu};
+  auto quit   = new QAction{QIcon{":/TranslucentMPlayer/exit.svg"},        tr("Quit"),                     menu};
 
   connect(open,   SIGNAL(triggered(bool)), this, SLOT(openMediaFile()));
   connect(config, SIGNAL(triggered(bool)), this, SLOT(onConfigTriggered()));
+  connect(video,  SIGNAL(triggered(bool)), this, SLOT(onVideoSettingsTriggered()));
   connect(about,  SIGNAL(triggered(bool)), this, SLOT(onAboutTriggered()));
   connect(quit,   SIGNAL(triggered(bool)), this, SLOT(onExitTriggered()));
 
@@ -70,6 +73,7 @@ TranslucentMPlayer::TranslucentMPlayer()
   menu->addMenu(m_playListMenu);
   menu->addSeparator();
   menu->addAction(config);
+  menu->addAction(video);
   menu->addAction(about);
   menu->addAction(quit);
 
@@ -228,6 +232,13 @@ void TranslucentMPlayer::onPlaylistItemTriggered()
   }
 
   play(m_playList.at(index));
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onVideoSettingsTriggered()
+{
+  VideoConfigurationDialog dialog(m_manager);
+  dialog.exec();
 }
 
 //-----------------------------------------------------------------
