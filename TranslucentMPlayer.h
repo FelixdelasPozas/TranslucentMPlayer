@@ -108,11 +108,15 @@ class TranslucentMPlayer
     static const QString KEY_OPACITY;
     static const QString KEY_VOLUME;
     static const QString KEY_POSITION;
+    static const QString KEY_SIZE;
+    static const QString KEY_LAST_DIR;
 
     QString         m_playerPath;   /** absolute path of the mplayer executable.   */
+    QString         m_lastPath;     /** last used directory.                       */
     int             m_volume;       /** volume level in [0-100].                   */
     int             m_opacity;      /** opacity level in [0-100].                  */
     QPoint          m_position;     /** top-left corner coordinates the the video. */
+    float           m_size;         /** video size in [0.25-2]                     */
     QStringList     m_playList;     /** list of media files to play secuentially.  */
     PlayerManager  *m_manager;      /** player manager.                            */
     QSystemTrayIcon m_icon;         /** application tray icon.                     */

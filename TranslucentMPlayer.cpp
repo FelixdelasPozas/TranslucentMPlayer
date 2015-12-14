@@ -37,6 +37,11 @@ const QString TranslucentMPlayer::KEY_MPLAYER_PATH  = "MPlayer executable path";
 const QString TranslucentMPlayer::KEY_OPACITY       = "Opacity";
 const QString TranslucentMPlayer::KEY_VOLUME        = "Volume";
 const QString TranslucentMPlayer::KEY_POSITION      = "Position";
+const QString TranslucentMPlayer::KEY_SIZE          = "Size";
+const QString TranslucentMPlayer::KEY_LAST_DIR      = "Last used directory";
+
+const QString FILES_FILTER_VIDEO = QObject::tr("Video files (*.avi *.vfw *.divx *.mpg *.mpeg *.m1v *.m2v *.mpv *.dv *.3gp *.mov *.mp4 *.m4v *.mqv *.dat *.vcd *.ogg *.ogm *.ogv *.ogx *.asf *.wmv *.bin *.iso *.vob *.mkv *.nsv *.ram *.flv *.rm *.swf *.ts *.rmvb *.drv-ms *.m2t *.m2ts *.mts *.rec *.wtv *.f4v *.hdmov *.webm *.vp8 *.bik *.smk *.m4b *.wtv)");
+const QString FILES_FILTER_ALL   = QObject::tr("All files (*.*)");
 
 //-----------------------------------------------------------------
 TranslucentMPlayer::TranslucentMPlayer()
@@ -47,7 +52,7 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   auto menu = new QMenu{};
 
-  auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"}, tr("Add file to playlist..."), menu};
+  auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"}, tr("Add files to playlist..."), menu};
   auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"}, tr("Configure..."),            menu};
   auto about  = new QAction{QIcon{":/TranslucentMPlayer/film.svg"},   tr("About..."),                menu};
   auto quit   = new QAction{QIcon{":/TranslucentMPlayer/exit.svg"},   tr("Quit"),                    menu};
@@ -75,11 +80,6 @@ TranslucentMPlayer::TranslucentMPlayer()
 TranslucentMPlayer::~TranslucentMPlayer()
 {
   saveSettings();
-
-  if(m_icon.isVisible())
-  {
-    m_icon.hide();
-  }
 }
 
 //-----------------------------------------------------------------
@@ -105,25 +105,41 @@ bool TranslucentMPlayer::start()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::openMediaFile()
 {
+  QStringList filters;
+  filters << FILES_FILTER_VIDEO << FILES_FILTER_ALL;
+
+  auto directory = QDir::current();
+  if(!m_lastPath.isEmpty())
+  {
+    directory = QDir{m_lastPath};
+    if(!directory.exists() && !directory.isRoot())
+    {
+      directory.cdUp();
+    }
+
+    if(directory.isRoot())
+    {
+      directory = QDir::current();
+    }
+  }
+
   QFileDialog openDialog;
   openDialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
   openDialog.setWindowTitle(tr("Open media file"));
-  openDialog.setDirectory(QDir::currentPath());
+  openDialog.setDirectory(directory);
   openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
   openDialog.setReadOnly(true);
-  openDialog.setNameFilter(tr("Media files (*.*)"));
+  openDialog.setNameFilters(filters);
   openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
   openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
   openDialog.setFileMode(QFileDialog::ExistingFiles);
 
-  openDialog.exec();
-
-  auto files = openDialog.selectedFiles();
-  if(files.isEmpty())
+  if((openDialog.exec() != QDialog::Accepted) || openDialog.selectedFiles().isEmpty())
   {
     return;
   }
 
+  auto files = openDialog.selectedFiles();
   QStringList invalidFiles, validFiles;
 
   for(auto file: files)
@@ -143,6 +159,8 @@ void TranslucentMPlayer::openMediaFile()
     fileAction->setCheckable(true);
 
     connect(fileAction, SIGNAL(triggered()), this, SLOT(onPlaylistItemTriggered()));
+
+    m_lastPath = info.absolutePath();
 
     m_playListMenu->addAction(fileAction);
   }
@@ -256,9 +274,11 @@ void TranslucentMPlayer::loadSettings()
   QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
 
   m_playerPath = settings.value(KEY_MPLAYER_PATH, QString()).toString();
-  m_opacity    = settings.value(KEY_OPACITY, 60).toInt();
-  m_volume     = settings.value(KEY_VOLUME, 50).toInt();
-  m_position   = settings.value(KEY_POSITION, QPoint{0,0}).toPoint();
+  m_lastPath   = settings.value(KEY_LAST_DIR,     QString()).toString();
+  m_opacity    = settings.value(KEY_OPACITY,      60).toInt();
+  m_volume     = settings.value(KEY_VOLUME,       50).toInt();
+  m_position   = settings.value(KEY_POSITION,     QPoint{0,0}).toPoint();
+  m_size       = settings.value(KEY_SIZE,         1.0).toFloat();
 }
 
 //-----------------------------------------------------------------
@@ -267,7 +287,9 @@ void TranslucentMPlayer::saveSettings()
   QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
 
   settings.setValue(KEY_MPLAYER_PATH, m_playerPath);
-  settings.setValue(KEY_OPACITY, m_opacity);
-  settings.setValue(KEY_VOLUME, m_volume);
-  settings.setValue(KEY_POSITION, m_position);
+  settings.setValue(KEY_LAST_DIR,     m_lastPath);
+  settings.setValue(KEY_OPACITY,      m_opacity);
+  settings.setValue(KEY_VOLUME,       m_volume);
+  settings.setValue(KEY_POSITION,     m_position);
+  settings.setValue(KEY_SIZE,         m_position);
 }
