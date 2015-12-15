@@ -25,6 +25,7 @@
 
 // Qt
 #include <QProcess>
+#include <QSize>
 #include <QObject>
 
 /** \class PlayerManager
@@ -152,6 +153,22 @@ class PlayerManager
      *
      */
     void enableSubtitles(bool value);
+
+    /** \brief Returns the size of the video.
+     *
+     */
+    const QSize videoSize() const;
+
+    /** \brief Sets the widget position to the given screen coordinate.
+     * \param[in] point top-left corner position of the desktop widget.
+     *
+     */
+    void setWidgetPosition(const QPoint &point);
+
+    /** \brief Returns the position of the desktop widget.
+     *
+     */
+    const QPoint widgetPosition() const;
 
   private slots:
     /** \brief Manages mplayer errors.

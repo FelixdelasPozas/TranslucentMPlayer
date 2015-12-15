@@ -23,6 +23,7 @@
 
 // Qt
 #include <QDir>
+#include <QPoint>
 #include <QDebug>
 
 //-----------------------------------------------------------------
@@ -83,6 +84,9 @@ void PlayerManager::play(const QString& fileName)
   arguments << "-monitorpixelaspect";
   arguments << "1";
   arguments << "-noborder";
+  arguments << "-noautosub";
+  arguments << "-subcp";
+  arguments << "es:cp1145";
   arguments << fileName;
 
   m_process.start(m_playerPath, arguments);
@@ -270,14 +274,20 @@ void PlayerManager::enableSubtitles(bool value)
       QStringList filters;
       filters << "*.srt" << "*.sub" << "*.ssa" << "*.ass" << "*.idx" << "*.txt" << "*.smi" << "*.rt" << "*.utf" << "*.aqt";
 
-      auto subtitles = path.entryList(filters, QDir::Readable|QDir::Files);
-      auto subFile = path.absoluteFilePath(subtitles.first()); //.replace('/', QDir::separator());
+      auto subtitleFiles = path.entryList(filters, QDir::Readable|QDir::Files);
+      if(!subtitleFiles.isEmpty())
+      {
+        auto file = path.absoluteFilePath(subtitleFiles.first());
 
-      m_process.write(QString("sub_load %1\n").arg(subFile).toUtf8());
+        m_process.write(QString("sub_load %1\n").arg(file).toUtf8());
+      }
+
+      // enables internal subtitles if embedded in video and there's no separated subtitle files.
       m_process.write("sub_select 0\n");
     }
     else
     {
+      m_process.write("sub_remove\n");
       m_process.write("sub_select -1\n");
     }
   }
@@ -316,4 +326,24 @@ void PlayerManager::onOutputAvailable()
 bool PlayerManager::isPlaying() const
 {
   return m_process.isOpen();
+}
+
+//-----------------------------------------------------------------
+const QSize PlayerManager::videoSize() const
+{
+  auto ratio = m_size/100.0;
+
+  return QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)};
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setWidgetPosition(const QPoint &point)
+{
+  m_desktopWidget.setPosition(point);
+}
+
+//-----------------------------------------------------------------
+const QPoint PlayerManager::widgetPosition() const
+{
+  return m_desktopWidget.pos();
 }

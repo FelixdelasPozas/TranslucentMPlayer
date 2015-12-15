@@ -30,7 +30,6 @@
 class DesktopWidget
 : public QWidget
 {
-    Q_OBJECT
   public:
     /** \brief DesktopWidget class constructor.
      * \param[in] dragEnable true to make the widget react to events and false to make the widget transparent to input.
@@ -62,30 +61,6 @@ class DesktopWidget
      *
      */
     void setVideoSize(const QSize &size);
-
-    /** \brief Enables/disables widget dragging.
-     * \param[in] value true to enable and false otherwise.
-     *
-     */
-    void enableDrag(bool value);
-
-  signals:
-    void beingDragged();
-
-  protected:
-    virtual void mousePressEvent(QMouseEvent *e) override final;
-    virtual void mouseReleaseEvent(QMouseEvent *e) override final;
-    virtual void mouseMoveEvent(QMouseEvent *e) override final;
-
-  private:
-    virtual void paintEvent(QPaintEvent *e) override final;
-
-    bool   m_dragEnable;     /** true if the widget can be dragged around the desktop space. */
-    bool   m_buttonDown;     /** true if the left mouse button is down and false otherwise.  */
-    QPoint m_point;          /** dragging point.                                             */
-
-    int m_limitX;            /** X limit in global screen coordinates. */
-    int m_limitY;            /** Y limit in global screen coordinates. */
 };
 
 #endif // DESKTOPWIDGET_H_
