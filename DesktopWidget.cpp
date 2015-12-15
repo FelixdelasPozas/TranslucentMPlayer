@@ -34,6 +34,7 @@ DesktopWidget::DesktopWidget(bool dragEnable, QWidget *parent)
   setAttribute(Qt::WA_AlwaysStackOnTop);
   setAttribute(Qt::WA_NoSystemBackground);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  setWindowModality(Qt::WindowModality::ApplicationModal);
 
   setGeometry(QRect(0,0, 100, 100));
   setWindowOpacity(0.60);

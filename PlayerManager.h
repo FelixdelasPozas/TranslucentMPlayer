@@ -64,95 +64,104 @@ class PlayerManager
      */
     void stop();
 
-    /** \brief
+    /** \brief Returns the opacity of the desktop widget.
      *
      */
     int opacity() const;
 
-    /** \brief
+    /** \brief Sets the opacity of the desktop widget.
+     * \param[in] value opacity value [5-100].
      *
      */
     void setOpacity(int value);
 
-    /** \brief
+    /** \brief Returns the volume of the video.
      *
      */
     int volume() const;
 
-    /** \brief
+    /** \brief Sets the volume of the video.
+     * \param[in] value volume value [0-100].
      *
      */
     void setVolume(int value);
 
-    /** \brief
+    /** \brief Returns the size of the video (not real size but the ratio corresponding to the size * 100).
      *
      */
     int size() const;
 
-    /** \brief
+    /** \brief Sets the size of the desktop widget.
+     * \param[in] value size value in [25-200].
      *
      */
     void setSize(int value);
 
-    /** \brief
+    /** \brief Returns the brightness of the video.
      *
      */
     int brightness() const;
 
-    /** \brief
+    /** \brief Sets the brightness of the video.
+     * \param[in] value brightness value [-100 - 100].
      *
      */
     void setBrightness(int value);
 
-    /** \brief
+    /** \brief Returns the contrast of the video.
      *
      */
     int contrast() const;
 
-    /** \brief
+    /** \brief Sets the contrast value of the video.
+     * \param[in] value contrast value [-100 - 100].
      *
      */
     void setContrast(int value);
 
-    /** \brief
+    /** \brief Returns the gamma of the video.
      *
      */
     int gamma() const;
 
-    /** \brief
+    /** \brief Sets the gamma value of the video.
+     * \param[in] value gamma value [-100 - 100].
      *
      */
     void setGamma(int value);
 
-    /** \brief
+    /** \brief Returns the hue value of the video.
      *
      */
     int hue() const;
 
-    /** \brief
+    /** \brief Sets the hue value of the video.
+     * \param[in] value hue value [-100 - 100].
      *
      */
     void setHue(int value);
 
-    /** \brief
+    /** \brief Returns the saturation value of the video.
      *
      */
     int saturation() const;
 
-    /** \brief
+    /** \brief Sets the saturation value of the video.
+     * \param[in] value saturation value [-100 - 100].
      *
      */
     void setSaturation(int value);
 
-    /** \brief
+    /** \brief Returns true if subtitle loading is enabled.
      *
      */
     bool subtitlesEnabled() const;
 
-    /** \brief
+    /** \brief Enables/disables video subtitles.
+     * \param[in] enabled true to enable and false otherwise.
      *
      */
-    void enableSubtitles(bool value);
+    void enableSubtitles(bool enabled);
 
     /** \brief Returns the size of the video.
      *

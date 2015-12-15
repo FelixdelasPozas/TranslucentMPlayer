@@ -85,8 +85,7 @@ void PlayerManager::play(const QString& fileName)
   arguments << "1";
   arguments << "-noborder";
   arguments << "-noautosub";
-  arguments << "-subcp";
-  arguments << "es:cp1145";
+  arguments << "-utf8";
   arguments << fileName;
 
   m_process.start(m_playerPath, arguments);
@@ -260,11 +259,11 @@ bool PlayerManager::subtitlesEnabled() const
 }
 
 //-----------------------------------------------------------------
-void PlayerManager::enableSubtitles(bool value)
+void PlayerManager::enableSubtitles(bool enabled)
 {
-  if(m_subtitlesEnabled != value)
+  if(m_subtitlesEnabled != enabled)
   {
-    m_subtitlesEnabled = value;
+    m_subtitlesEnabled = enabled;
 
     if(m_subtitlesEnabled)
     {
@@ -272,14 +271,17 @@ void PlayerManager::enableSubtitles(bool value)
       auto path = QDir{info.absolutePath()};
 
       QStringList filters;
-      filters << "*.srt" << "*.sub" << "*.ssa" << "*.ass" << "*.idx" << "*.txt" << "*.smi" << "*.rt" << "*.utf" << "*.aqt";
+      for(auto ext: { "*.srt", "*.sub", "*.ssa", "*.ass", "*.idx", "*.txt", "*.smi", "*.rt", "*.utf", "*.aqt"})
+      {
+        filters << QString("%1%2").arg(info.baseName()).arg(ext);
+      }
 
       auto subtitleFiles = path.entryList(filters, QDir::Readable|QDir::Files);
       if(!subtitleFiles.isEmpty())
       {
         auto file = path.absoluteFilePath(subtitleFiles.first());
 
-        m_process.write(QString("sub_load %1\n").arg(file).toUtf8());
+        m_process.write(QString("sub_load \"%1\"\n").arg(file).toUtf8());
       }
 
       // enables internal subtitles if embedded in video and there's no separated subtitle files.
