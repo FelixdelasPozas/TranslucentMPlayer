@@ -112,32 +112,12 @@ class VideoConfigurationDialog
     void onPositionChanged(int index);
 
   private:
-    static const QStringList POSITION_NAMES;
-
     /** \brief Helper method to connect UI components signals.
      *
      */
     void connectSignals();
 
-    /** \brief Fills the desktop widget position combo box with all the
-     *   possible preset positions based on detected screen geometry.
-     *
-     */
-    void computeDesktopWidgetPositions();
-
-    /** \brief Computes all the fixed positions and position names for the given QRect.
-     * \param[in] rect QRect rectangle.
-     *
-     */
-    void computePositions(const QRect &rect);
-
-    /** \brief Initializes the position combo box with the preset values.
-     *
-     */
-    void initPositionComboBox();
-
     PlayerManager *m_manager;         /** video manager. */
-    QList<QPoint>  m_widgetPositions; /** computed preset widget positions. */
 };
 
 #endif // VIDEOCONFIGURATIONDIALOG_H_

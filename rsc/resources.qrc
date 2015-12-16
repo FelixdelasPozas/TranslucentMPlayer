@@ -8,5 +8,7 @@
 	<file>exit.svg</file>
 	<file>list.svg</file>
 	<file>videoconfig.svg</file>
+	<file>play.svg</file>
+	<file>pause.svg</file>
   </qresource>
 </RCC>

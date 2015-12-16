@@ -20,16 +20,9 @@
 // project
 #include "DesktopWidget.h"
 
-// Qt
-#include <QPainter>
-#include <QMouseEvent>
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QDebug>
-
 //-----------------------------------------------------------------
-DesktopWidget::DesktopWidget(bool dragEnable, QWidget *parent)
-: QWidget      {parent, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint|Qt::NoDropShadowWindowHint|Qt::WindowTransparentForInput|Qt::Tool}
+DesktopWidget::DesktopWidget(QWidget *parent)
+: QWidget{parent, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint|Qt::NoDropShadowWindowHint|Qt::WindowTransparentForInput|Qt::Tool}
 {
   setAttribute(Qt::WA_AlwaysStackOnTop);
   setAttribute(Qt::WA_NoSystemBackground);

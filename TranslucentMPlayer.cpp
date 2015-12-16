@@ -157,10 +157,8 @@ void TranslucentMPlayer::openMediaFile()
     m_playList << file;
     validFiles << file;
 
-    auto info = QFileInfo{file};
-
+    auto info       = QFileInfo{file};
     auto fileAction = new QAction{info.baseName(), m_playListMenu};
-    fileAction->setCheckable(true);
 
     connect(fileAction, SIGNAL(triggered()), this, SLOT(onPlaylistItemTriggered()));
 
@@ -200,7 +198,7 @@ void TranslucentMPlayer::openMediaFile()
       auto file = validFiles.first();
       int pos = m_playList.indexOf(file);
 
-      m_playListMenu->actions().at(pos)->setChecked(true);
+      m_playListMenu->actions().at(pos)->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
 
       play(file);
     }
@@ -219,14 +217,14 @@ void TranslucentMPlayer::onPlaylistItemTriggered()
   {
     if(menuActions[i] == action)
     {
-      action->setChecked(true);
+      action->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
       index = i;
     }
     else
     {
-      if(menuActions[i]->isChecked())
+      if(!menuActions[i]->icon().isNull())
       {
-        menuActions[i]->setChecked(false);
+        menuActions[i]->setIcon(QIcon());
       }
     }
   }
@@ -269,11 +267,36 @@ void TranslucentMPlayer::onConfigTriggered()
 }
 
 //-----------------------------------------------------------------
+void TranslucentMPlayer::onManagerFinishedPlaying()
+{
+  int index = 0;
+  auto actions = m_playListMenu->actions();
+  for(auto action: actions)
+  {
+    if(!action->icon().isNull())
+    {
+      action->setIcon(QIcon());
+      if(action != actions.last())
+      {
+        actions[++index]->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
+
+        play(m_playList.at(index));
+        return;
+      }
+    }
+    ++index;
+  }
+}
+
+//-----------------------------------------------------------------
 void TranslucentMPlayer::play(const QString &fileName)
 {
   if(!m_manager)
   {
     m_manager = new PlayerManager(m_playerPath);
+
+    connect(m_manager, SIGNAL(finishedPlaying()),
+            this,      SLOT(onManagerFinishedPlaying()));
   }
 
   m_manager->play(fileName);

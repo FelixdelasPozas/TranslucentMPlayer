@@ -32,11 +32,10 @@ class DesktopWidget
 {
   public:
     /** \brief DesktopWidget class constructor.
-     * \param[in] dragEnable true to make the widget react to events and false to make the widget transparent to input.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit DesktopWidget(bool dragEnable, QWidget *parent);
+    explicit DesktopWidget(QWidget *parent);
 
     /** \brief DesktopWidget class virtual destructor.
      *

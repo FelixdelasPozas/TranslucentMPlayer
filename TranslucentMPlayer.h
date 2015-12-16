@@ -91,6 +91,11 @@ class TranslucentMPlayer
      */
     void onVideoSettingsTriggered();
 
+    /** \brief Plays the next file in the playlist, if any, when the process signals that mplayer has finished.
+     *
+     */
+    void onManagerFinishedPlaying();
+
   private:
     /** \brief Plays the given file.
      * \param[in] fileName file absolute file path.

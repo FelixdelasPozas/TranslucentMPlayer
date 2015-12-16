@@ -25,12 +25,26 @@
 #include <QDir>
 #include <QPoint>
 #include <QDebug>
+#include <QApplication>
+#include <QDesktopWidget>
+
+const QStringList PlayerManager::POSITION_NAMES = { QString("Top Left"),
+                                                    QString("Top Center"),
+                                                    QString("Top Right"),
+                                                    QString("Center Left"),
+                                                    QString("Center"),
+                                                    QString("Center Right"),
+                                                    QString("Bottom Left"),
+                                                    QString("Bottom Center"),
+                                                    QString("Bottom Right") };
+
+const QStringList PlayerManager::SUBTITLES_EXTENSIONS = { "*.srt", "*.sub", "*.ssa", "*.ass", "*.idx", "*.txt", "*.smi", "*.rt", "*.utf", "*.aqt"};
 
 //-----------------------------------------------------------------
 PlayerManager::PlayerManager(const QString &playerPath)
 : m_playerPath      {playerPath}
 , m_process         {this}
-, m_desktopWidget   {false, nullptr}
+, m_desktopWidget   {nullptr}
 , m_opacity         {60}
 , m_volume          {100}
 , m_size            {100}
@@ -44,9 +58,9 @@ PlayerManager::PlayerManager(const QString &playerPath)
 , m_videoHeight     {0}
 {
   connect(&m_process, SIGNAL(readyReadStandardError()),
-          this,      SLOT(onErrorAvailable()));
+          this,       SLOT(onErrorAvailable()));
   connect(&m_process, SIGNAL(readyReadStandardOutput()),
-          this,      SLOT(onOutputAvailable()));
+          this,       SLOT(onOutputAvailable()));
 }
 
 //-----------------------------------------------------------------
@@ -60,12 +74,14 @@ void PlayerManager::play(const QString& fileName)
 {
   if(m_file == fileName && isPlaying()) return;
 
-  m_file = fileName;
+  m_file.clear();
 
   if(isPlaying())
   {
     stop();
   }
+
+  m_file = fileName;
 
   QStringList arguments;
   arguments << "-slave";
@@ -76,6 +92,8 @@ void PlayerManager::play(const QString& fileName)
   arguments << "-cache";
   arguments << "8192";
   arguments << "-idle";
+  arguments << "-msglevel";
+  arguments << "vo=4:statusline=6:global=6";
   arguments << "-wid";
   arguments << QString().number(static_cast<int>(m_desktopWidget.winId()));
   arguments << "-framedrop";
@@ -162,8 +180,13 @@ void PlayerManager::setSize(int value)
   {
     m_size = value;
 
+    auto position = widgetPosition();
+
     auto ratio = value/100.0;
     m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+
+    computePositions();
+    m_desktopWidget.setPosition(m_widgetPositions.at(position));
   }
 }
 
@@ -265,13 +288,13 @@ void PlayerManager::enableSubtitles(bool enabled)
   {
     m_subtitlesEnabled = enabled;
 
-    if(m_subtitlesEnabled)
+    if(m_subtitlesEnabled && !m_file.isEmpty())
     {
       auto info = QFileInfo{m_file};
       auto path = QDir{info.absolutePath()};
 
       QStringList filters;
-      for(auto ext: { "*.srt", "*.sub", "*.ssa", "*.ass", "*.idx", "*.txt", "*.smi", "*.rt", "*.utf", "*.aqt"})
+      for(auto ext: SUBTITLES_EXTENSIONS)
       {
         filters << QString("%1%2").arg(info.baseName()).arg(ext);
       }
@@ -306,6 +329,12 @@ void PlayerManager::onOutputAvailable()
       break;
     }
 
+    if(QString(data).startsWith("EOF code:"))
+    {
+      m_desktopWidget.hide();
+      emit finishedPlaying();
+    }
+
     auto dataString = QString().fromUtf8(data);
     auto parts = dataString.split(' ', QString::SkipEmptyParts);
     if(!parts.isEmpty() && ((parts[0].compare("VO:") == 0) || (parts[0].compare("VIDEO:") == 0)))
@@ -313,12 +342,27 @@ void PlayerManager::onOutputAvailable()
       auto resolution = parts[2].split('x');
       if(!resolution.isEmpty())
       {
+        if(m_videoWidth == resolution[0].toInt() && m_videoHeight == resolution[1].toInt()) return;
+
+        if(m_widgetPositionNames.isEmpty())
+        {
+          computePositionsNames();
+        }
+
+        auto widgetPos = !m_widgetPositions.isEmpty() ? m_widgetPositions.indexOf(m_desktopWidget.pos()) : 0;
+
         m_videoWidth  = resolution[0].toInt();
         m_videoHeight = resolution[1].toInt();
 
-        m_desktopWidget.hide();
-        m_desktopWidget.setVideoSize(QSize{m_videoWidth, m_videoHeight});
+        computePositions();
+
+        auto ratio = m_size/100.0;
+        m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+        m_desktopWidget.setPosition(m_widgetPositions.at(widgetPos));
+
         m_desktopWidget.show();
+
+        emit startedPlaying();
       }
     }
   }
@@ -339,13 +383,65 @@ const QSize PlayerManager::videoSize() const
 }
 
 //-----------------------------------------------------------------
-void PlayerManager::setWidgetPosition(const QPoint &point)
+void PlayerManager::setWidgetPosition(int index)
 {
-  m_desktopWidget.setPosition(point);
+  m_desktopWidget.setPosition(m_widgetPositions.at(index));
 }
 
 //-----------------------------------------------------------------
-const QPoint PlayerManager::widgetPosition() const
+int PlayerManager::widgetPosition() const
 {
-  return m_desktopWidget.pos();
+  return m_widgetPositions.indexOf(m_desktopWidget.pos());
+}
+
+//-----------------------------------------------------------------
+QStringList PlayerManager::widgetPositionNames() const
+{
+  return m_widgetPositionNames;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::computePositionsNames()
+{
+  for(auto position: POSITION_NAMES)
+  {
+    m_widgetPositionNames << QString("Global ") + position;
+  }
+
+  auto desktop = QApplication::desktop();
+  for (int i = 0; i < desktop->numScreens(); ++i)
+  {
+    for(auto position: POSITION_NAMES)
+    {
+      m_widgetPositionNames << QString("Monitor %1 ").arg(i) + position;
+    }
+  }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::computePositions()
+{
+  m_widgetPositions.clear();
+
+  auto desktop = QApplication::desktop();
+  computeRectPositions(desktop->geometry());
+
+  for (int i = 0; i < desktop->numScreens(); ++i)
+  {
+    computeRectPositions(desktop->screenGeometry(i));
+  }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::computeRectPositions(const QRect& rect)
+{
+  auto widgetSize = videoSize();
+
+  for(int y: {rect.y(), rect.y()+(rect.height()-widgetSize.height())/2, rect.y()+rect.height()-widgetSize.height()})
+  {
+    for(int x: {rect.x(), rect.x()+(rect.width()-widgetSize.width())/2, rect.x()+rect.width()-widgetSize.width()})
+    {
+      m_widgetPositions << QPoint{x,y};
+    }
+  }
 }

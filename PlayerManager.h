@@ -169,15 +169,24 @@ class PlayerManager
     const QSize videoSize() const;
 
     /** \brief Sets the widget position to the given screen coordinate.
-     * \param[in] point top-left corner position of the desktop widget.
+     * \param[in] index index in the precomputed widget positions.
      *
      */
-    void setWidgetPosition(const QPoint &point);
+    void setWidgetPosition(int index);
 
-    /** \brief Returns the position of the desktop widget.
+    /** \brief Returns the index of the position of the desktop widget in the positions list.
      *
      */
-    const QPoint widgetPosition() const;
+    int widgetPosition() const;
+
+    /** \brief Returns the list of names of the preset positions.
+     *
+     */
+    QStringList widgetPositionNames() const;
+
+  signals:
+    void finishedPlaying();
+    void startedPlaying();
 
   private slots:
     /** \brief Manages mplayer errors.
@@ -191,23 +200,46 @@ class PlayerManager
     void onOutputAvailable();
 
   private:
-    const QString m_playerPath;    /** mplayer executable absolute path.                    */
-    QProcess      m_process;       /** mplayer process.                                     */
-    DesktopWidget m_desktopWidget; /** desktop widget for video display.                    */
-    QString       m_file;          /** currently playing file or empty if stopped.          */
+    /** \brief Computes the names of the preset positions based on desktop configuration.
+     *
+     */
+    void computePositionsNames();
 
-    int m_opacity;                 /** video opacity value [0-100]                          */
-    int m_volume;                  /** video volume value [0-100]                           */
-    int m_size;                    /** video size multiplier [25 - 200] = value/100         */
-    int m_brightness;              /** video brightness value [-100 - 100]                  */
-    int m_contrast;                /** video contrast value [-100 - 100]                    */
-    int m_gamma;                   /** video gamma value [-100 - 100]                       */
-    int m_hue;                     /** video hue value [-100 - 100]                         */
-    int m_saturation;              /** video saturation value [-100 - 100]                  */
-    bool m_subtitlesEnabled;       /** true if subtitles must be loaded and shown (if any). */
+    /** \brief Computes the available positions based on desktop configuration.
+     *
+     */
+    void computePositions();
 
-    int m_videoWidth;              /** detected video width.                                */
-    int m_videoHeight;             /** detected video height.                               */
+    /** \brief Computes all the fixed positions and position names for the given QRect.
+     * \param[in] rect QRect rectangle.
+     *
+     */
+    void computeRectPositions(const QRect &rect);
+
+  private:
+    static const QStringList SUBTITLES_EXTENSIONS; /** subtitle files extensions. */
+
+    const QString m_playerPath;              /** mplayer executable absolute path.                    */
+    QProcess      m_process;                 /** mplayer process.                                     */
+    DesktopWidget m_desktopWidget;           /** desktop widget for video display.                    */
+    QString       m_file;                    /** currently playing file or empty if stopped.          */
+
+    int m_opacity;                           /** video opacity value [0-100]                          */
+    int m_volume;                            /** video volume value [0-100]                           */
+    int m_size;                              /** video size multiplier [25 - 200] = value/100         */
+    int m_brightness;                        /** video brightness value [-100 - 100]                  */
+    int m_contrast;                          /** video contrast value [-100 - 100]                    */
+    int m_gamma;                             /** video gamma value [-100 - 100]                       */
+    int m_hue;                               /** video hue value [-100 - 100]                         */
+    int m_saturation;                        /** video saturation value [-100 - 100]                  */
+    bool m_subtitlesEnabled;                 /** true if subtitles must be loaded and shown (if any). */
+
+    int m_videoWidth;                        /** detected video width.                                */
+    int m_videoHeight;                       /** detected video height.                               */
+
+    static const QStringList POSITION_NAMES; /** list of available precomputed positions.             */
+    QList<QPoint> m_widgetPositions;         /** list od computed preset widget positions.            */
+    QStringList   m_widgetPositionNames;     /** list of names for computed preset positions.         */
 };
 
 #endif // PLAYERMANAGER_H_

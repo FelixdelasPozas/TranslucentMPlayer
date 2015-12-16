@@ -23,21 +23,8 @@
 
 // Qt
 #include <QString>
-#include <QRect>
-#include <QApplication>
-#include <QDesktopWidget>
 
 #define VALUE_TEXT(value) QString("%1%").arg(value)
-
-const QStringList VideoConfigurationDialog::POSITION_NAMES = { QString("Top Left"),
-                                                               QString("Top Center"),
-                                                               QString("Top Right"),
-                                                               QString("Center Left"),
-                                                               QString("Center"),
-                                                               QString("Center Right"),
-                                                               QString("Bottom Left"),
-                                                               QString("Bottom Center"),
-                                                               QString("Bottom Right") };
 
 //-----------------------------------------------------------------
 VideoConfigurationDialog::VideoConfigurationDialog(PlayerManager *manager, QWidget *parent, Qt::WindowFlags flags)
@@ -46,8 +33,8 @@ VideoConfigurationDialog::VideoConfigurationDialog(PlayerManager *manager, QWidg
 {
   setupUi(this);
 
-  initPositionComboBox();
-  m_positionComboBox ->setCurrentIndex(m_widgetPositions.indexOf(m_manager->widgetPosition()));
+  m_positionComboBox->insertItems(0, m_manager->widgetPositionNames());
+  m_positionComboBox->setCurrentIndex(m_manager->widgetPosition());
 
   connectSignals();
 
@@ -76,9 +63,6 @@ void VideoConfigurationDialog::onSizeValueChanged(int value)
   m_sizeValue->setText(VALUE_TEXT(value));
 
   m_manager->setSize(value);
-
-  computeDesktopWidgetPositions();
-  m_manager->setWidgetPosition(m_widgetPositions.at(m_positionComboBox->currentIndex()));
 }
 
 //-----------------------------------------------------------------
@@ -140,7 +124,7 @@ void VideoConfigurationDialog::onSubtitlesStateChanged(int state)
 //-----------------------------------------------------------------
 void VideoConfigurationDialog::onPositionChanged(int index)
 {
-  m_manager->setWidgetPosition(m_widgetPositions[index]);
+  m_manager->setWidgetPosition(index);
 }
 
 //-----------------------------------------------------------------
@@ -156,57 +140,4 @@ void VideoConfigurationDialog::connectSignals()
   connect(m_saturationSlider,  SIGNAL(valueChanged(int)),        this, SLOT(onSaturationValueChanged(int)));
   connect(m_subtitlesCheckbox, SIGNAL(stateChanged(int)),        this, SLOT(onSubtitlesStateChanged(int)));
   connect(m_positionComboBox,  SIGNAL(currentIndexChanged(int)), this, SLOT(onPositionChanged(int)));
-}
-
-//-----------------------------------------------------------------
-void VideoConfigurationDialog::computeDesktopWidgetPositions()
-{
-  m_widgetPositions.clear();
-
-  auto desktop = QApplication::desktop();
-  computePositions(desktop->geometry());
-
-  for (int i = 0; i < desktop->numScreens(); ++i)
-  {
-    computePositions(desktop->screenGeometry(i));
-  }
-}
-
-//-----------------------------------------------------------------
-void VideoConfigurationDialog::computePositions(const QRect &rect)
-{
-  auto widgetSize = m_manager->videoSize();
-
-  for(int y: {rect.y(), rect.y()+(rect.height()-widgetSize.height())/2, rect.y()+rect.height()-widgetSize.height()})
-  {
-    for(int x: {rect.x(), rect.x()+(rect.width()-widgetSize.width())/2, rect.x()+rect.width()-widgetSize.width()})
-    {
-      m_widgetPositions << QPoint{x,y};
-    }
-  }
-
-}
-
-//-----------------------------------------------------------------
-void VideoConfigurationDialog::initPositionComboBox()
-{
-  QStringList positionNames;
-
-  for(auto position: POSITION_NAMES)
-  {
-    positionNames << QString("Global ") + position;
-  }
-
-  auto desktop = QApplication::desktop();
-  for (int i = 0; i < desktop->numScreens(); ++i)
-  {
-    for(auto position: POSITION_NAMES)
-    {
-      positionNames << QString("Monitor %1 ").arg(i) + position;
-    }
-  }
-
-  computeDesktopWidgetPositions();
-
-  m_positionComboBox->insertItems(0, positionNames);
 }
