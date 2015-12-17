@@ -27,6 +27,7 @@
 #include <QProcess>
 #include <QSize>
 #include <QObject>
+#include <QTimer>
 
 /** \class PlayerManager
  * \brief QProcress around mplayer wrapper.
@@ -63,6 +64,11 @@ class PlayerManager
      *
      */
     void stop();
+
+    /** \brief Sets the absolute path to the mplayer executable. Doesn't check it's validity.
+     *
+     */
+    void setMPlayerPath(const QString &path);
 
     /** \brief Returns the opacity of the desktop widget.
      *
@@ -169,24 +175,36 @@ class PlayerManager
     const QSize videoSize() const;
 
     /** \brief Sets the widget position to the given screen coordinate.
-     * \param[in] index index in the precomputed widget positions.
+     * \param[in] positionName position name.
      *
      */
-    void setWidgetPosition(int index);
+    void setWidgetPosition(const QString &positionName);
 
-    /** \brief Returns the index of the position of the desktop widget in the positions list.
+    /** \brief Returns the string of the position of the desktop widget in the positions list.
      *
      */
-    int widgetPosition() const;
+    const QString widgetPosition() const;
 
     /** \brief Returns the list of names of the preset positions.
      *
      */
     QStringList widgetPositionNames() const;
 
+    /** \brief Enables/disables the signaling of video time procession.
+     * \param[in] enabled true to signal the timing and false otherwise.
+     *
+     */
+    void enableTiming(bool enabled);
+
+    /** \brief Returns the video duration in seconds.
+     *
+     */
+    int videoDuration() const;
+
   signals:
     void finishedPlaying();
     void startedPlaying();
+    void time(float seconds);
 
   private slots:
     /** \brief Manages mplayer errors.
@@ -199,7 +217,17 @@ class PlayerManager
      */
     void onOutputAvailable();
 
+    /** \brief Ask mplayer for current video time.
+     *
+     */
+    void askTime();
+
   private:
+    /** \brief Updates the properties of the video display.
+     *
+     */
+    void setVideoProperties();
+
     /** \brief Computes the names of the preset positions based on desktop configuration.
      *
      */
@@ -216,10 +244,20 @@ class PlayerManager
      */
     void computeRectPositions(const QRect &rect);
 
+    /** \brief Helper method to load the subtitles in mplayer.
+     *
+     */
+    void loadSubtitles();
+
+    /** \brief Helper method to unload the subtitles file (if any) and deactivate subtitles.
+     *
+     */
+    void unloadSubtitles();
+
   private:
     static const QStringList SUBTITLES_EXTENSIONS; /** subtitle files extensions. */
 
-    const QString m_playerPath;              /** mplayer executable absolute path.                    */
+    QString       m_playerPath;              /** mplayer executable absolute path.                    */
     QProcess      m_process;                 /** mplayer process.                                     */
     DesktopWidget m_desktopWidget;           /** desktop widget for video display.                    */
     QString       m_file;                    /** currently playing file or empty if stopped.          */
@@ -232,6 +270,7 @@ class PlayerManager
     int m_gamma;                             /** video gamma value [-100 - 100]                       */
     int m_hue;                               /** video hue value [-100 - 100]                         */
     int m_saturation;                        /** video saturation value [-100 - 100]                  */
+    QString m_widgetPosition;                /** widget position string.                              */
     bool m_subtitlesEnabled;                 /** true if subtitles must be loaded and shown (if any). */
 
     int m_videoWidth;                        /** detected video width.                                */
@@ -240,6 +279,9 @@ class PlayerManager
     static const QStringList POSITION_NAMES; /** list of available precomputed positions.             */
     QList<QPoint> m_widgetPositions;         /** list od computed preset widget positions.            */
     QStringList   m_widgetPositionNames;     /** list of names for computed preset positions.         */
+
+    QTimer m_timer;
+    int m_duration;
 };
 
 #endif // PLAYERMANAGER_H_

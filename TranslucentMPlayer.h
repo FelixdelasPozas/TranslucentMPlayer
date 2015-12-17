@@ -117,20 +117,32 @@ class TranslucentMPlayer
     static const QString KEY_MPLAYER_PATH;
     static const QString KEY_OPACITY;
     static const QString KEY_VOLUME;
-    static const QString KEY_POSITION;
     static const QString KEY_SIZE;
     static const QString KEY_LAST_DIR;
+    static const QString KEY_VIDEO_BRIGHTNESS;
+    static const QString KEY_VIDEO_CONTRAST;
+    static const QString KEY_VIDEO_GAMMA;
+    static const QString KEY_VIDEO_HUE;
+    static const QString KEY_VIDEO_SATURATION;
+    static const QString KEY_VIDEO_POSITION;
+    static const QString KEY_SHOW_SUBTITLES;
 
-    QString         m_playerPath;   /** absolute path of the mplayer executable.   */
-    QString         m_lastPath;     /** last used directory.                       */
-    int             m_volume;       /** volume level in [0-100].                   */
-    int             m_opacity;      /** opacity level in [0-100].                  */
-    QPoint          m_position;     /** top-left corner coordinates the the video. */
-    float           m_size;         /** video size in [0.25-2]                     */
-    QStringList     m_playList;     /** list of media files to play secuentially.  */
-    PlayerManager  *m_manager;      /** player manager.                            */
-    QSystemTrayIcon m_icon;         /** application tray icon.                     */
-    QMenu          *m_playListMenu; /** playlist menu in tray icon.                */
+    QString         m_playerPath;       /** absolute path of the mplayer executable.    */
+    QString         m_lastPath;         /** last used directory.                        */
+    int             m_volume;           /** volume level in [0-100].                    */
+    int             m_opacity;          /** opacity level in [0-100].                   */
+    QString         m_position;         /** video position on dektop.                   */
+    int             m_size;             /** video size in [0.25-2]                      */
+    int             m_brightness;       /** video brightness in [-100 - 100]            */
+    int             m_contrast;         /** video contrast int [-100 - 100]             */
+    int             m_gamma;            /** video gamma in [-100 - 100]                 */
+    int             m_hue;              /** video hue in [-100 - 100]                   */
+    int             m_saturation;       /** video saturation in [-100 - 100]            */
+    bool            m_subtitlesEnabled; /** true to show subtitles and false otherwise. */
+    QStringList     m_playList;         /** list of media files to play secuentially.   */
+    PlayerManager  *m_manager;          /** player manager.                             */
+    QSystemTrayIcon m_icon;             /** application tray icon.                      */
+    QMenu          *m_playListMenu;     /** playlist menu in tray icon.                 */
 };
 
 #endif // TRANSLUCENTMPLAYER_H_

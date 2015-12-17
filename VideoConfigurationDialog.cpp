@@ -33,8 +33,9 @@ VideoConfigurationDialog::VideoConfigurationDialog(PlayerManager *manager, QWidg
 {
   setupUi(this);
 
-  m_positionComboBox->insertItems(0, m_manager->widgetPositionNames());
-  m_positionComboBox->setCurrentIndex(m_manager->widgetPosition());
+  auto names = m_manager->widgetPositionNames();
+  m_positionComboBox->insertItems(0, names);
+  m_positionComboBox->setCurrentIndex(names.indexOf(m_manager->widgetPosition()));
 
   connectSignals();
 
@@ -124,7 +125,7 @@ void VideoConfigurationDialog::onSubtitlesStateChanged(int state)
 //-----------------------------------------------------------------
 void VideoConfigurationDialog::onPositionChanged(int index)
 {
-  m_manager->setWidgetPosition(index);
+  m_manager->setWidgetPosition(m_positionComboBox->itemText(index));
 }
 
 //-----------------------------------------------------------------

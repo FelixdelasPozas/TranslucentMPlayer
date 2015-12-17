@@ -33,13 +33,19 @@
 #include <QProcess>
 #include <QMessageBox>
 
-const QString TranslucentMPlayer::SETTINGS_FILENAME = "TranslucentMPlayer.ini";
-const QString TranslucentMPlayer::KEY_MPLAYER_PATH  = "MPlayer executable path";
-const QString TranslucentMPlayer::KEY_OPACITY       = "Opacity";
-const QString TranslucentMPlayer::KEY_VOLUME        = "Volume";
-const QString TranslucentMPlayer::KEY_POSITION      = "Position";
-const QString TranslucentMPlayer::KEY_SIZE          = "Size";
-const QString TranslucentMPlayer::KEY_LAST_DIR      = "Last used directory";
+const QString TranslucentMPlayer::SETTINGS_FILENAME    = "TranslucentMPlayer.ini";
+const QString TranslucentMPlayer::KEY_MPLAYER_PATH     = "MPlayer executable path";
+const QString TranslucentMPlayer::KEY_OPACITY          = "Opacity";
+const QString TranslucentMPlayer::KEY_VOLUME           = "Volume";
+const QString TranslucentMPlayer::KEY_SIZE             = "Size";
+const QString TranslucentMPlayer::KEY_LAST_DIR         = "Last used directory";
+const QString TranslucentMPlayer::KEY_VIDEO_BRIGHTNESS = "Video brightness";
+const QString TranslucentMPlayer::KEY_VIDEO_CONTRAST   = "Video contrast";
+const QString TranslucentMPlayer::KEY_VIDEO_GAMMA      = "Video gamma";
+const QString TranslucentMPlayer::KEY_VIDEO_HUE        = "Video hue";
+const QString TranslucentMPlayer::KEY_VIDEO_SATURATION = "Video saturation";
+const QString TranslucentMPlayer::KEY_VIDEO_POSITION   = "Video position";
+const QString TranslucentMPlayer::KEY_SHOW_SUBTITLES   = "Show video subtitles";
 
 const QString FILES_FILTER_VIDEO = QObject::tr("Video files (*.avi *.vfw *.divx *.mpg *.mpeg *.m1v *.m2v *.mpv *.dv *.3gp *.mov *.mp4 *.m4v *.mqv *.dat *.vcd *.ogg *.ogm *.ogv *.ogx *.asf *.wmv *.bin *.iso *.vob *.mkv *.nsv *.ram *.flv *.rm *.swf *.ts *.rmvb *.drv-ms *.m2t *.m2ts *.mts *.rec *.wtv *.f4v *.hdmov *.webm *.vp8 *.bik *.smk *.m4b *.wtv)");
 const QString FILES_FILTER_ALL   = QObject::tr("All files (*.*)");
@@ -260,9 +266,29 @@ void TranslucentMPlayer::onConfigTriggered()
   ConfigurationDialog conf;
   conf.setMplayerPath(m_playerPath);
 
-  if(conf.exec() == QDialog::Accepted)
+  if((conf.exec() == QDialog::Accepted) && (conf.mplayerPath() != m_playerPath))
   {
     m_playerPath = conf.mplayerPath();
+
+    if(m_manager)
+    {
+      m_manager->setMPlayerPath(m_playerPath);
+
+      if(m_manager->isPlaying())
+      {
+        m_manager->stop();
+
+        auto actions = m_playListMenu->actions();
+        for(int i = 0; i < actions.size(); ++i)
+        {
+          if(!actions[i]->icon().isNull())
+          {
+            play(m_playList.at(i));
+            return;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -297,6 +323,17 @@ void TranslucentMPlayer::play(const QString &fileName)
 
     connect(m_manager, SIGNAL(finishedPlaying()),
             this,      SLOT(onManagerFinishedPlaying()));
+
+    m_manager->setOpacity(m_opacity);
+    m_manager->setSize(m_size);
+    m_manager->setVolume(m_volume);
+    m_manager->setBrightness(m_brightness);
+    m_manager->setContrast(m_contrast);
+    m_manager->setGamma(m_gamma);
+    m_manager->setHue(m_hue);
+    m_manager->setSaturation(m_saturation);
+    m_manager->setWidgetPosition(m_position);
+    m_manager->enableSubtitles(m_subtitlesEnabled);
   }
 
   m_manager->play(fileName);
@@ -307,23 +344,39 @@ void TranslucentMPlayer::loadSettings()
 {
   QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
 
-  m_playerPath = settings.value(KEY_MPLAYER_PATH, QString()).toString();
-  m_lastPath   = settings.value(KEY_LAST_DIR,     QString()).toString();
-  m_opacity    = settings.value(KEY_OPACITY,      60).toInt();
-  m_volume     = settings.value(KEY_VOLUME,       50).toInt();
-  m_position   = settings.value(KEY_POSITION,     QPoint{0,0}).toPoint();
-  m_size       = settings.value(KEY_SIZE,         1.0).toFloat();
+  m_playerPath       = settings.value(KEY_MPLAYER_PATH,     QString()).toString();
+  m_lastPath         = settings.value(KEY_LAST_DIR,         QString()).toString();
+  m_opacity          = settings.value(KEY_OPACITY,          60).toInt();
+  m_volume           = settings.value(KEY_VOLUME,           50).toInt();
+  m_size             = settings.value(KEY_SIZE,             100).toInt();
+  m_position         = settings.value(KEY_VIDEO_POSITION,   QString()).toString();
+  m_brightness       = settings.value(KEY_VIDEO_BRIGHTNESS, 0).toInt();
+  m_contrast         = settings.value(KEY_VIDEO_CONTRAST,   0).toInt();
+  m_gamma            = settings.value(KEY_VIDEO_GAMMA,      0).toInt();
+  m_hue              = settings.value(KEY_VIDEO_HUE,        0).toInt();
+  m_saturation       = settings.value(KEY_VIDEO_SATURATION, 0).toInt();
+  m_subtitlesEnabled = settings.value(KEY_SHOW_SUBTITLES,   false).toBool();
+
 }
 
 //-----------------------------------------------------------------
 void TranslucentMPlayer::saveSettings()
 {
-  QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
+  if(m_manager)
+  {
+    QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
 
-  settings.setValue(KEY_MPLAYER_PATH, m_playerPath);
-  settings.setValue(KEY_LAST_DIR,     m_lastPath);
-  settings.setValue(KEY_OPACITY,      m_opacity);
-  settings.setValue(KEY_VOLUME,       m_volume);
-  settings.setValue(KEY_POSITION,     m_position);
-  settings.setValue(KEY_SIZE,         m_position);
+    settings.setValue(KEY_MPLAYER_PATH,     m_playerPath);
+    settings.setValue(KEY_LAST_DIR,         m_lastPath);
+    settings.setValue(KEY_OPACITY,          m_manager->opacity());
+    settings.setValue(KEY_VOLUME,           m_manager->volume());
+    settings.setValue(KEY_SIZE,             m_manager->size());
+    settings.setValue(KEY_VIDEO_POSITION,   m_manager->widgetPosition());
+    settings.setValue(KEY_VIDEO_BRIGHTNESS, m_manager->brightness());
+    settings.setValue(KEY_VIDEO_CONTRAST,   m_manager->contrast());
+    settings.setValue(KEY_VIDEO_GAMMA,      m_manager->gamma());
+    settings.setValue(KEY_VIDEO_HUE,        m_manager->hue());
+    settings.setValue(KEY_VIDEO_SATURATION, m_manager->saturation());
+    settings.setValue(KEY_SHOW_SUBTITLES,   m_manager->subtitlesEnabled());
+  }
 }

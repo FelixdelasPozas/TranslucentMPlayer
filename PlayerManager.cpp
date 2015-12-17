@@ -56,11 +56,15 @@ PlayerManager::PlayerManager(const QString &playerPath)
 , m_subtitlesEnabled{false}
 , m_videoWidth      {0}
 , m_videoHeight     {0}
+, m_duration        {0}
 {
   connect(&m_process, SIGNAL(readyReadStandardError()),
           this,       SLOT(onErrorAvailable()));
   connect(&m_process, SIGNAL(readyReadStandardOutput()),
           this,       SLOT(onOutputAvailable()));
+
+  m_timer.setSingleShot(false);
+  m_timer.setInterval(1000);
 }
 
 //-----------------------------------------------------------------
@@ -93,7 +97,9 @@ void PlayerManager::play(const QString& fileName)
   arguments << "8192";
   arguments << "-idle";
   arguments << "-msglevel";
-  arguments << "vo=4:statusline=6:global=6";
+  arguments << "statusline=6:global=6";
+  arguments << "-osdlevel";
+  arguments << "0";
   arguments << "-wid";
   arguments << QString().number(static_cast<int>(m_desktopWidget.winId()));
   arguments << "-framedrop";
@@ -123,7 +129,15 @@ void PlayerManager::stop()
     {
       m_process.kill();
     }
+
+    m_duration = 0;
   }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setMPlayerPath(const QString &path)
+{
+  m_playerPath = path;
 }
 
 //-----------------------------------------------------------------
@@ -163,7 +177,10 @@ void PlayerManager::setVolume(int value)
   {
     m_volume = value;
 
-    m_process.write(QString("volume %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("volume %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -180,13 +197,17 @@ void PlayerManager::setSize(int value)
   {
     m_size = value;
 
-    auto position = widgetPosition();
-
     auto ratio = value/100.0;
     m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
 
     computePositions();
-    m_desktopWidget.setPosition(m_widgetPositions.at(position));
+
+    if(!m_widgetPositionNames.isEmpty())
+    {
+      auto position = widgetPosition();
+      auto point = m_widgetPositions.at(m_widgetPositionNames.indexOf(position));
+      m_desktopWidget.setPosition(point);
+    }
   }
 }
 
@@ -203,7 +224,10 @@ void PlayerManager::setBrightness(int value)
   {
     m_brightness = value;
 
-    m_process.write(QString("brightness %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("brightness %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -220,7 +244,10 @@ void PlayerManager::setContrast(int value)
   {
     m_contrast = value;
 
-    m_process.write(QString("contrast %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("contrast %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -237,7 +264,10 @@ void PlayerManager::setGamma(int value)
   {
     m_gamma = value;
 
-    m_process.write(QString("gamma %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("gamma %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -254,7 +284,10 @@ void PlayerManager::setHue(int value)
   {
     m_hue = value;
 
-    m_process.write(QString("hue %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("hue %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -271,7 +304,10 @@ void PlayerManager::setSaturation(int value)
   {
     m_saturation = value;
 
-    m_process.write(QString("saturation %1 1\n").arg(value).toUtf8());
+    if(isPlaying())
+    {
+      m_process.write(QString("saturation %1 1\n").arg(value).toUtf8());
+    }
   }
 }
 
@@ -288,32 +324,16 @@ void PlayerManager::enableSubtitles(bool enabled)
   {
     m_subtitlesEnabled = enabled;
 
-    if(m_subtitlesEnabled && !m_file.isEmpty())
+    if(isPlaying())
     {
-      auto info = QFileInfo{m_file};
-      auto path = QDir{info.absolutePath()};
-
-      QStringList filters;
-      for(auto ext: SUBTITLES_EXTENSIONS)
+      if(m_subtitlesEnabled)
       {
-        filters << QString("%1%2").arg(info.baseName()).arg(ext);
+        loadSubtitles();
       }
-
-      auto subtitleFiles = path.entryList(filters, QDir::Readable|QDir::Files);
-      if(!subtitleFiles.isEmpty())
+      else
       {
-        auto file = path.absoluteFilePath(subtitleFiles.first());
-
-        m_process.write(QString("sub_load \"%1\"\n").arg(file).toUtf8());
+        unloadSubtitles();
       }
-
-      // enables internal subtitles if embedded in video and there's no separated subtitle files.
-      m_process.write("sub_select 0\n");
-    }
-    else
-    {
-      m_process.write("sub_remove\n");
-      m_process.write("sub_select -1\n");
     }
   }
 }
@@ -329,15 +349,42 @@ void PlayerManager::onOutputAvailable()
       break;
     }
 
-    if(QString(data).startsWith("EOF code:"))
+    auto dataString = QString().fromUtf8(data);
+    if(dataString.startsWith("EOF code:"))
     {
       m_desktopWidget.hide();
       emit finishedPlaying();
+      return;
     }
 
-    auto dataString = QString().fromUtf8(data);
+    if(dataString.startsWith("ANS_LENGTH"))
+    {
+      dataString.remove(dataString.length()-4,4);
+      auto parts = dataString.split("=");
+
+      if(parts.size() == 2)
+      {
+        m_duration = parts[1].toInt();
+      }
+
+      return;
+    }
+
+    if(m_timer.isActive() && dataString.startsWith("ANS_TIME_POSITION"))
+    {
+      dataString.remove(dataString.length()-4,4);
+      auto parts = dataString.split("=");
+
+      if(parts.size() == 2)
+      {
+        emit time(parts[1].toFloat());
+      }
+
+      return;
+    }
+
     auto parts = dataString.split(' ', QString::SkipEmptyParts);
-    if(!parts.isEmpty() && ((parts[0].compare("VO:") == 0) || (parts[0].compare("VIDEO:") == 0)))
+    if(!parts.isEmpty() && (parts[0].compare("VO:") == 0))
     {
       auto resolution = parts[2].split('x');
       if(!resolution.isEmpty())
@@ -349,8 +396,6 @@ void PlayerManager::onOutputAvailable()
           computePositionsNames();
         }
 
-        auto widgetPos = !m_widgetPositions.isEmpty() ? m_widgetPositions.indexOf(m_desktopWidget.pos()) : 0;
-
         m_videoWidth  = resolution[0].toInt();
         m_videoHeight = resolution[1].toInt();
 
@@ -358,7 +403,16 @@ void PlayerManager::onOutputAvailable()
 
         auto ratio = m_size/100.0;
         m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+
+        auto widgetPos = m_widgetPosition.isEmpty() ? 0 : m_widgetPositionNames.indexOf(m_widgetPosition);
         m_desktopWidget.setPosition(m_widgetPositions.at(widgetPos));
+
+        m_process.write("get_time_length\n");
+        m_process.waitForBytesWritten();
+
+        setVideoProperties();
+
+        m_process.write("osd 1\n");
 
         m_desktopWidget.show();
 
@@ -383,21 +437,76 @@ const QSize PlayerManager::videoSize() const
 }
 
 //-----------------------------------------------------------------
-void PlayerManager::setWidgetPosition(int index)
+void PlayerManager::setWidgetPosition(const QString &positionName)
 {
-  m_desktopWidget.setPosition(m_widgetPositions.at(index));
+  if(m_widgetPosition != positionName)
+  {
+    m_widgetPosition = positionName;
+
+    if(!m_widgetPositionNames.isEmpty() && m_widgetPositionNames.contains(positionName))
+    {
+      auto position = m_widgetPositions.at(m_widgetPositionNames.indexOf(positionName));
+      m_desktopWidget.setPosition(position);
+    }
+    else
+    {
+      m_desktopWidget.setPosition(QPoint{0,0});
+    }
+  }
 }
 
 //-----------------------------------------------------------------
-int PlayerManager::widgetPosition() const
+const QString PlayerManager::widgetPosition() const
 {
-  return m_widgetPositions.indexOf(m_desktopWidget.pos());
+  auto name = m_widgetPositionNames.isEmpty() ? QString() : m_widgetPosition;
+  return name;
 }
 
 //-----------------------------------------------------------------
 QStringList PlayerManager::widgetPositionNames() const
 {
   return m_widgetPositionNames;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::enableTiming(bool enabled)
+{
+  if(enabled && !m_timer.isActive())
+  {
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(askTime()));
+
+    m_timer.start();
+    return;
+  }
+
+  if(!enabled && m_timer.isActive())
+  {
+    disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(askTime()));
+
+    m_timer.stop();
+  }
+}
+
+//-----------------------------------------------------------------
+int PlayerManager::videoDuration() const
+{
+  return m_duration;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setVideoProperties()
+{
+  m_process.write(QString("volume %1 1\n").arg(m_volume).toUtf8());
+  m_process.write(QString("brightness %1 1\n").arg(m_brightness).toUtf8());
+  m_process.write(QString("contrast %1 1\n").arg(m_contrast).toUtf8());
+  m_process.write(QString("gamma %1 1\n").arg(m_gamma).toUtf8());
+  m_process.write(QString("hue %1 1\n").arg(m_hue).toUtf8());
+  m_process.write(QString("saturation %1 1\n").arg(m_saturation).toUtf8());
+
+  if(m_subtitlesEnabled)
+  {
+    loadSubtitles();
+  }
 }
 
 //-----------------------------------------------------------------
@@ -444,4 +553,41 @@ void PlayerManager::computeRectPositions(const QRect& rect)
       m_widgetPositions << QPoint{x,y};
     }
   }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::loadSubtitles()
+{
+  auto info = QFileInfo{m_file};
+  auto path = QDir{info.absolutePath()};
+
+  QStringList filters;
+  for(auto ext: SUBTITLES_EXTENSIONS)
+  {
+    filters << QString("%1%2").arg(info.baseName()).arg(ext);
+  }
+
+  auto subtitleFiles = path.entryList(filters, QDir::Readable|QDir::Files);
+  if(!subtitleFiles.isEmpty())
+  {
+    auto file = path.absoluteFilePath(subtitleFiles.first());
+
+    m_process.write(QString("sub_load \"%1\"\n").arg(file).toUtf8());
+  }
+
+  // enables internal subtitles if embedded in video and there's no separated subtitle files.
+  m_process.write("sub_select 0\n");
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::unloadSubtitles()
+{
+  m_process.write("sub_remove\n");
+  m_process.write("sub_select -1\n");
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::askTime()
+{
+  m_process.write("get_time_pos\n");
 }
