@@ -24,6 +24,8 @@
 #include "AboutDialog.h"
 #include "PlayerManager.h"
 #include "VideoConfigurationDialog.h"
+#include "ProgressWidgetAction.h"
+#include "VolumeWidgetAction.h"
 
 // Qt
 #include <QFileDialog>
@@ -59,6 +61,9 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   auto menu = new QMenu{};
 
+  m_progressWidget = new ProgressWidgetAction(100, 0, menu);
+  m_volumeWidget   = new VolumeWidgetAction(100, menu);
+
   auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"},      tr("Add files to playlist..."), menu};
   auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"},      tr("Configure..."),             menu};
   auto video  = new QAction{QIcon{":/TranslucentMPlayer/videoconfig.svg"}, tr("Video Settings..."),        menu};
@@ -74,6 +79,10 @@ TranslucentMPlayer::TranslucentMPlayer()
   m_playListMenu = new QMenu{"Playlist"};
   m_playListMenu->setIcon(QIcon{":/TranslucentMPlayer/list.svg"});
 
+  menu->addAction(m_progressWidget);
+  menu->addSeparator();
+  menu->addAction(m_volumeWidget);
+  menu->addSeparator();
   menu->addAction(open);
   menu->addSeparator();
   menu->addMenu(m_playListMenu);

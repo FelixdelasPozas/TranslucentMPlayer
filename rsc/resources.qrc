@@ -10,5 +10,6 @@
 	<file>videoconfig.svg</file>
 	<file>play.svg</file>
 	<file>pause.svg</file>
+	<file>speaker.svg</file>
   </qresource>
 </RCC>

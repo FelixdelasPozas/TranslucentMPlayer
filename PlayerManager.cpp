@@ -94,7 +94,7 @@ void PlayerManager::play(const QString& fileName)
   arguments << "-ao";
   arguments << "win32";
   arguments << "-cache";
-  arguments << "8192";
+  arguments << "16384";
   arguments << "-idle";
   arguments << "-msglevel";
   arguments << "statusline=6:global=6";

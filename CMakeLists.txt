@@ -76,6 +76,8 @@ set (CORE_SOURCES
   DesktopWidget.cpp
   PlayerManager.cpp
   VideoConfigurationDialog.cpp
+  VolumeWidgetAction.cpp
+  ProgressWidgetAction.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

@@ -30,6 +30,8 @@
 
 class QProcess;
 class PlayerManager;
+class ProgressWidgetAction;
+class VolumeWidgetAction;
 
 /** \class TranslucentMPlayer
  * \brief Main application.
@@ -143,6 +145,10 @@ class TranslucentMPlayer
     PlayerManager  *m_manager;          /** player manager.                             */
     QSystemTrayIcon m_icon;             /** application tray icon.                      */
     QMenu          *m_playListMenu;     /** playlist menu in tray icon.                 */
+
+    ProgressWidgetAction *m_progressWidget; /** menu progress widget to set the progress and play/pause from tray. */
+    VolumeWidgetAction   *m_volumeWidget;   /** menu volume widget for volume modification from tray.              */
+
 };
 
 #endif // TRANSLUCENTMPLAYER_H_
