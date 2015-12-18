@@ -20,6 +20,9 @@
 // project
 #include "DesktopWidget.h"
 
+// Qt
+#include <QEvent>
+
 //-----------------------------------------------------------------
 DesktopWidget::DesktopWidget(QWidget *parent)
 : QWidget{parent, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint|Qt::NoDropShadowWindowHint|Qt::WindowTransparentForInput|Qt::Tool}
@@ -62,4 +65,19 @@ void DesktopWidget::setVideoSize(const QSize& widgetSize)
   {
     setGeometry(QRect(0,0, widgetSize.width(), widgetSize.height()));
   }
+}
+
+//-----------------------------------------------------------------
+bool DesktopWidget::event(QEvent* e)
+{
+  if((e->type() == QEvent::WindowBlocked) ||
+     (e->type() == QEvent::WindowDeactivate) ||
+     (e->type() == QEvent::WindowStateChange))
+  {
+    this->raise();
+    this->activateWindow();
+    return true;
+  }
+
+  return QWidget::event(e);
 }

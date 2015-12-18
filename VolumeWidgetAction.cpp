@@ -39,23 +39,26 @@ void VolumeWidgetAction::setVolume(int value)
 {
   if(m_volume != value)
   {
+    blockSignals(true);
     for(auto widget: createdWidgets())
     {
       auto item = widget->layout()->itemAt(1);
       auto slider = qobject_cast<QSlider *>(item->widget());
       slider->setValue(value);
     }
+    blockSignals(false);
 
     m_volume = value;
   }
 }
+
 //-----------------------------------------------------------------
 QWidget* VolumeWidgetAction::createWidget(QWidget* parent)
 {
   auto layout = new QHBoxLayout;
-  layout->setSpacing(0);
-  layout->setContentsMargins(0,0,0,0);
-  layout->setMargin(0);
+  layout->setSpacing(3);
+  layout->setContentsMargins(3,3,3,3);
+  layout->setMargin(3);
 
   auto label = new QLabel();
   label->setFixedSize(QSize{20,20});

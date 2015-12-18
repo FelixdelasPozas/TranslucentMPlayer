@@ -57,7 +57,7 @@ class VolumeWidgetAction
     virtual QWidget *createWidget(QWidget *parent) override final;
 
   private:
-    int m_volume;  /** starting value for volume slider .*/
+    int m_volume; /** starting value for volume slider .*/
 };
 
 #endif // VOLUMEWIDGETACTION_H_

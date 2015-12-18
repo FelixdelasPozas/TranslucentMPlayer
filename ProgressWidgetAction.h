@@ -42,16 +42,22 @@ class ProgressWidgetAction
     virtual ~ProgressWidgetAction()
     {}
 
+    /** \brief Sets the maximum value of the progress slider.
+     * \param[in] value integer value.
+     */
+    void setMaximumValue(int value);
+
+    /** \brief Sets the progress and max values to initial.
+     *
+     */
+    void reset();
+
+  public slots:
     /** \brief Sets the value in the progress slider.
      * \param[in] value progress value in [0-MAX].
      *
      */
     void setProgress(int value);
-
-    /** \brief Sets the maximum value of the progress slider.
-     * \param[in] value integer value.
-     */
-    void setMaximumValue(int value);
 
   private slots:
     /** \brief Emits the play/pause signal accordingly.
@@ -59,6 +65,12 @@ class ProgressWidgetAction
      *
      */
     void onButtonClicked(bool checked);
+
+    /** \brief Updates the current time label.
+     * \param[in] value progress value.
+     *
+     */
+    void onProgressChanged(int value);
 
   signals:
     void play();

@@ -201,10 +201,25 @@ class PlayerManager
      */
     int videoDuration() const;
 
+    /** \brief Pauses the current video.
+     *
+     */
+    void pause();
+
+    /** \brief Resumes playing the current video.
+     *
+     */
+    void unpause();
+
+    /** \brief Seeks the video to the given position in seconds.
+     *
+     */
+    void setVideoTime(int seconds);
+
   signals:
     void finishedPlaying();
     void startedPlaying();
-    void time(float seconds);
+    void time(int seconds);
 
   private slots:
     /** \brief Manages mplayer errors.
@@ -276,12 +291,13 @@ class PlayerManager
     int m_videoWidth;                        /** detected video width.                                */
     int m_videoHeight;                       /** detected video height.                               */
 
-    static const QStringList POSITION_NAMES; /** list of available precomputed positions.             */
-    QList<QPoint> m_widgetPositions;         /** list od computed preset widget positions.            */
+    static const QStringList POSITION_NAMES; /** list of available preset positions.                  */
+    QList<QPoint> m_widgetPositions;         /** list of computed preset widget positions.            */
     QStringList   m_widgetPositionNames;     /** list of names for computed preset positions.         */
 
-    QTimer m_timer;
-    int m_duration;
+    QTimer m_timer;                          /** timer for progress signaling.                        */
+    int    m_duration;                       /** duration of the video in seconds.                    */
+    bool   m_paused;                         /** true if the video is paused and false otherwise.     */
 };
 
 #endif // PLAYERMANAGER_H_

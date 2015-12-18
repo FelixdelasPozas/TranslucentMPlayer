@@ -117,7 +117,7 @@ class VideoConfigurationDialog
      */
     void connectSignals();
 
-    PlayerManager *m_manager;         /** video manager. */
+    PlayerManager *m_manager; /** video manager. */
 };
 
 #endif // VIDEOCONFIGURATIONDIALOG_H_

@@ -49,20 +49,32 @@ const QString TranslucentMPlayer::KEY_VIDEO_SATURATION = "Video saturation";
 const QString TranslucentMPlayer::KEY_VIDEO_POSITION   = "Video position";
 const QString TranslucentMPlayer::KEY_SHOW_SUBTITLES   = "Show video subtitles";
 
-const QString FILES_FILTER_VIDEO = QObject::tr("Video files (*.avi *.vfw *.divx *.mpg *.mpeg *.m1v *.m2v *.mpv *.dv *.3gp *.mov *.mp4 *.m4v *.mqv *.dat *.vcd *.ogg *.ogm *.ogv *.ogx *.asf *.wmv *.bin *.iso *.vob *.mkv *.nsv *.ram *.flv *.rm *.swf *.ts *.rmvb *.drv-ms *.m2t *.m2ts *.mts *.rec *.wtv *.f4v *.hdmov *.webm *.vp8 *.bik *.smk *.m4b *.wtv)");
+const QString FILES_FILTER_VIDEO = QObject::tr("Video files (*.avi *.vfw *.divx *.mpg *.mpeg *.m1v *.m2v *.mpv *.dv *.3gp *.mov *.mp4"
+                                               " *.m4v *.mqv *.dat *.vcd *.ogg *.ogm *.ogv *.ogx *.asf *.wmv *.bin *.iso *.vob *.mkv"
+                                               " *.nsv *.ram *.flv *.rm *.swf *.ts *.rmvb *.drv-ms *.m2t *.m2ts *.mts *.rec *.wtv *.f4v"
+                                               " *.hdmov *.webm *.vp8 *.bik *.smk *.m4b *.wtv)");
+
 const QString FILES_FILTER_ALL   = QObject::tr("All files (*.*)");
 
 //-----------------------------------------------------------------
 TranslucentMPlayer::TranslucentMPlayer()
 : m_manager{nullptr}
 , m_icon   {QIcon(":TranslucentMPlayer/film.svg"), this}
+, m_paused {false}
 {
   loadSettings();
 
   auto menu = new QMenu{};
 
   m_progressWidget = new ProgressWidgetAction(100, 0, menu);
+
+  connect(m_progressWidget, SIGNAL(play()), this, SLOT(onWidgetPlay()));
+  connect(m_progressWidget, SIGNAL(pause()), this, SLOT(onWidgetPause()));
+  connect(m_progressWidget, SIGNAL(progressChanged(int)), this, SLOT(onProgressChanged(int)));
+
   m_volumeWidget   = new VolumeWidgetAction(100, menu);
+
+  connect(m_volumeWidget, SIGNAL(volumeChanged(int)), this, SLOT(onVolumeChanged(int)));
 
   auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"},      tr("Add files to playlist..."), menu};
   auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"},      tr("Configure..."),             menu};
@@ -93,6 +105,9 @@ TranslucentMPlayer::TranslucentMPlayer()
   menu->addAction(quit);
 
   m_icon.setContextMenu(menu);
+
+  connect(menu, SIGNAL(aboutToShow()), this, SLOT(onMenuShow()));
+  connect(menu, SIGNAL(aboutToHide()), this, SLOT(onMenuHide()));
 }
 
 //-----------------------------------------------------------------
@@ -150,7 +165,7 @@ void TranslucentMPlayer::openMediaFile()
   openDialog.setReadOnly(true);
   openDialog.setNameFilters(filters);
   openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
-  openDialog.setLabelText(QFileDialog::Reject, tr("Quit"));
+  openDialog.setLabelText(QFileDialog::Reject, (m_playList.isEmpty() ? tr("Quit") : tr("Cancel")));
   openDialog.setFileMode(QFileDialog::ExistingFiles);
 
   if((openDialog.exec() != QDialog::Accepted) || openDialog.selectedFiles().isEmpty())
@@ -321,11 +336,77 @@ void TranslucentMPlayer::onManagerFinishedPlaying()
     }
     ++index;
   }
+
+  m_progressWidget->reset();
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onWidgetPlay()
+{
+  m_paused = false;
+  m_manager->enableTiming(true);
+  m_manager->unpause();
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onWidgetPause()
+{
+  m_paused = true;
+  m_manager->enableTiming(false);
+  m_manager->pause();
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onProgressChanged(int value)
+{
+  m_manager->setVideoTime(value);
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onVolumeChanged(int value)
+{
+  m_manager->setVolume(value);
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onMenuShow()
+{
+  m_volumeWidget->setVolume(m_manager->volume());
+
+  m_progressWidget->setMaximumValue(m_manager->videoDuration());
+
+  connect(m_manager, SIGNAL(time(int)), m_progressWidget, SLOT(setProgress(int)));
+  if(!m_paused)
+  {
+    m_manager->enableTiming(true);
+  }
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onMenuHide()
+{
+  if(!m_paused)
+  {
+    m_manager->enableTiming(false);
+  }
+  disconnect(m_manager, SIGNAL(time(int)), m_progressWidget, SLOT(setProgress(int)));
 }
 
 //-----------------------------------------------------------------
 void TranslucentMPlayer::play(const QString &fileName)
 {
+  if(m_icon.contextMenu()->isVisible())
+  {
+    m_icon.contextMenu()->hide();
+  }
+
+  m_progressWidget->reset();
+
+  if(m_paused)
+  {
+    onWidgetPlay();
+  }
+
   if(!m_manager)
   {
     m_manager = new PlayerManager(m_playerPath);

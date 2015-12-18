@@ -25,6 +25,7 @@
 #include <QSlider>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QLabel>
 
 //-----------------------------------------------------------------
 ProgressWidgetAction::ProgressWidgetAction(int maxValue, int currentValue, QObject* parent)
@@ -39,12 +40,18 @@ void ProgressWidgetAction::setProgress(int value)
 {
   if(m_current != value)
   {
+    blockSignals(true);
     for(auto widget: createdWidgets())
     {
-      auto item = widget->layout()->itemAt(1);
-      auto slider = qobject_cast<QSlider *>(item->widget());
+      auto layout = widget->layout()->itemAt(0)->layout();
+      auto slider = qobject_cast<QSlider *>(layout->itemAt(1)->widget());
       slider->setValue(value);
+
+      layout = widget->layout()->itemAt(1)->layout();
+      auto label = qobject_cast<QLabel *>(layout->itemAt(0)->widget());
+      label->setText(QString("%1:%2:%3").arg(value/3600, 2, 10, QChar('0')).arg((value/60)%60, 2, 10, QChar('0')).arg(value%60, 2, 10, QChar('0')));
     }
+    blockSignals(false);
 
     m_current = value;
   }
@@ -57,41 +64,88 @@ void ProgressWidgetAction::setMaximumValue(int value)
   {
     for(auto widget: createdWidgets())
     {
-      auto item = widget->layout()->itemAt(1);
-      auto slider = qobject_cast<QSlider *>(item->widget());
+      auto layout = widget->layout()->itemAt(0)->layout();
+      auto slider = qobject_cast<QSlider *>(layout->itemAt(1)->widget());
       slider->setMaximum(value);
+
+      layout = widget->layout()->itemAt(1)->layout();
+      auto label = qobject_cast<QLabel *>(layout->itemAt(2)->widget());
+      label->setText(QString("%1:%2:%3").arg(value/3600, 2, 10, QChar('0')).arg((value/60)%60, 2, 10, QChar('0')).arg(value%60, 2, 10, QChar('0')));
     }
 
     m_maxValue = value;
   }
 }
+
+//-----------------------------------------------------------------
+void ProgressWidgetAction::reset()
+{
+  blockSignals(true);
+
+  for(auto widget: createdWidgets())
+  {
+    auto layout = widget->layout()->itemAt(0)->layout();
+    auto button = qobject_cast<QPushButton *>(layout->itemAt(0)->widget());
+    button->setChecked(false);
+    button->setIcon(QIcon(":/TranslucentMPlayer/pause.svg"));
+
+    auto slider = qobject_cast<QSlider *>(layout->itemAt(1)->widget());
+    slider->setMaximum(0);
+    slider->setValue(0);
+
+    layout = widget->layout()->itemAt(1)->layout();
+    auto label = qobject_cast<QLabel *>(layout->itemAt(2)->widget());
+    label->setText("00:00:00");
+  }
+
+  blockSignals(false);
+}
+
 //-----------------------------------------------------------------
 void ProgressWidgetAction::onButtonClicked(bool checked)
 {
   auto button = qobject_cast<QPushButton *>(sender());
   if(checked)
   {
-    button->setIcon(QIcon(":/TranslucentMPlayer/pause.svg"));
+    button->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
     emit pause();
   }
   else
   {
-    button->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
+    button->setIcon(QIcon(":/TranslucentMPlayer/pause.svg"));
     emit play();
   }
 }
 
 //-----------------------------------------------------------------
+void ProgressWidgetAction::onProgressChanged(int value)
+{
+  for(auto widget: createdWidgets())
+  {
+    auto layout = widget->layout()->itemAt(1)->layout();
+    auto label = qobject_cast<QLabel *>(layout->itemAt(0)->widget());
+    label->setText(QString("%1:%2:%3").arg(value/3600, 2, 10, QChar('0')).arg((value/60)%60, 2, 10, QChar('0')).arg(value%60, 2, 10, QChar('0')));
+  }
+
+  emit progressChanged(value);
+}
+
+//-----------------------------------------------------------------
 QWidget* ProgressWidgetAction::createWidget(QWidget* parent)
 {
-  auto layout = new QHBoxLayout;
-  layout->setSpacing(0);
-  layout->setContentsMargins(0,0,0,0);
-  layout->setMargin(0);
+  auto layout = new QVBoxLayout;
+  layout->setSpacing(3);
+  layout->setContentsMargins(3,3,3,3);
+  layout->setMargin(3);
+
+  auto layout1 = new QHBoxLayout;
+  layout1->setSpacing(0);
+  layout1->setContentsMargins(0,0,0,0);
+  layout1->setMargin(0);
 
   auto button = new QPushButton();
   button->setCheckable(true);
-  button->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
+  button->setIcon(QIcon(":/TranslucentMPlayer/pause.svg"));
   button->setFixedSize(QSize{24,24});
 
   auto slider = new QSlider(Qt::Horizontal);
@@ -100,15 +154,37 @@ QWidget* ProgressWidgetAction::createWidget(QWidget* parent)
   slider->setValue(m_current);
   slider->setFixedHeight(20);
 
-  connect(slider, SIGNAL(valueChanged(int)), this, SIGNAL(progressChanged(int)));
+  connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onProgressChanged(int)));
   connect(button, SIGNAL(clicked(bool)),     this, SLOT(onButtonClicked(bool)));
 
-  layout->addWidget(button, 0);
-  layout->addWidget(slider, 1);
+  layout1->addWidget(button, 0);
+  layout1->addWidget(slider, 1);
+
+  auto layout2 = new QHBoxLayout;
+  layout2->setSpacing(0);
+  layout2->setContentsMargins(0,0,0,0);
+  layout2->setMargin(0);
+
+  auto currentTime = new QLabel();
+  currentTime->setText(QString("%1:%2:%3").arg(m_current/3600, 2, 10, QChar('0')).arg((m_current/60)%60, 2, 10, QChar('0')).arg(m_current%60, 2, 10, QChar('0')));
+  currentTime->setAlignment(Qt::AlignHCenter);
+
+  auto separator = new QLabel();
+  separator->setText("/");
+
+  auto totalTime = new QLabel();
+  totalTime->setText(QString("%1:%2:%3").arg(m_maxValue/3600, 2, 10, QChar('0')).arg((m_maxValue/60)%60, 2, 10, QChar('0')).arg(m_maxValue%60, 2, 10, QChar('0')));
+  totalTime->setAlignment(Qt::AlignHCenter);
+
+  layout2->addWidget(currentTime, 1);
+  layout2->addWidget(separator, 0);
+  layout2->addWidget(totalTime, 1);
+
+  layout->addLayout(layout1);
+  layout->addLayout(layout2);
 
   auto widget = new QWidget(parent);
   widget->setLayout(layout);
 
   return widget;
-
 }

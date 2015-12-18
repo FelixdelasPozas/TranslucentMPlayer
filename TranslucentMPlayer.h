@@ -98,6 +98,39 @@ class TranslucentMPlayer
      */
     void onManagerFinishedPlaying();
 
+    /** \brief Starts a previously paused video.
+     *
+     */
+    void onWidgetPlay();
+
+    /** \brief Pauses a playing video.
+     *
+     */
+    void onWidgetPause();
+
+    /** \brief Changes the time of the video.
+     * \param[in] value time value in seconds of the new position.
+     *
+     *
+     */
+    void onProgressChanged(int value);
+
+    /** \brief Changes the volume of the playing video.
+     * \param[in] value volume value in [0-100].
+     *
+     */
+    void onVolumeChanged(int value);
+
+    /** \brief Updates the progress and the volume of the tray menu.
+     *
+     */
+    void onMenuShow();
+
+    /** \brief Signals the player to stop time signals.
+     *
+     */
+    void onMenuHide();
+
   private:
     /** \brief Plays the given file.
      * \param[in] fileName file absolute file path.
@@ -129,26 +162,26 @@ class TranslucentMPlayer
     static const QString KEY_VIDEO_POSITION;
     static const QString KEY_SHOW_SUBTITLES;
 
-    QString         m_playerPath;       /** absolute path of the mplayer executable.    */
-    QString         m_lastPath;         /** last used directory.                        */
-    int             m_volume;           /** volume level in [0-100].                    */
-    int             m_opacity;          /** opacity level in [0-100].                   */
-    QString         m_position;         /** video position on dektop.                   */
-    int             m_size;             /** video size in [0.25-2]                      */
-    int             m_brightness;       /** video brightness in [-100 - 100]            */
-    int             m_contrast;         /** video contrast int [-100 - 100]             */
-    int             m_gamma;            /** video gamma in [-100 - 100]                 */
-    int             m_hue;              /** video hue in [-100 - 100]                   */
-    int             m_saturation;       /** video saturation in [-100 - 100]            */
-    bool            m_subtitlesEnabled; /** true to show subtitles and false otherwise. */
-    QStringList     m_playList;         /** list of media files to play secuentially.   */
-    PlayerManager  *m_manager;          /** player manager.                             */
-    QSystemTrayIcon m_icon;             /** application tray icon.                      */
-    QMenu          *m_playListMenu;     /** playlist menu in tray icon.                 */
+    QString         m_playerPath;       /** absolute path of the mplayer executable.         */
+    QString         m_lastPath;         /** last used directory.                             */
+    int             m_volume;           /** volume level in [0-100].                         */
+    int             m_opacity;          /** opacity level in [0-100].                        */
+    QString         m_position;         /** video position on dektop.                        */
+    int             m_size;             /** video size in [0.25-2]                           */
+    int             m_brightness;       /** video brightness in [-100 - 100]                 */
+    int             m_contrast;         /** video contrast int [-100 - 100]                  */
+    int             m_gamma;            /** video gamma in [-100 - 100]                      */
+    int             m_hue;              /** video hue in [-100 - 100]                        */
+    int             m_saturation;       /** video saturation in [-100 - 100]                 */
+    bool            m_subtitlesEnabled; /** true to show subtitles and false otherwise.      */
+    QStringList     m_playList;         /** list of media files to play secuentially.        */
+    PlayerManager  *m_manager;          /** player manager.                                  */
+    QSystemTrayIcon m_icon;             /** application tray icon.                           */
+    QMenu          *m_playListMenu;     /** playlist menu in tray icon.                      */
+    bool            m_paused;           /** true if the video is paused and false otherwise. */
 
     ProgressWidgetAction *m_progressWidget; /** menu progress widget to set the progress and play/pause from tray. */
     VolumeWidgetAction   *m_volumeWidget;   /** menu volume widget for volume modification from tray.              */
-
 };
 
 #endif // TRANSLUCENTMPLAYER_H_

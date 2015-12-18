@@ -28,15 +28,9 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-const QStringList PlayerManager::POSITION_NAMES = { QString("Top Left"),
-                                                    QString("Top Center"),
-                                                    QString("Top Right"),
-                                                    QString("Center Left"),
-                                                    QString("Center"),
-                                                    QString("Center Right"),
-                                                    QString("Bottom Left"),
-                                                    QString("Bottom Center"),
-                                                    QString("Bottom Right") };
+const QStringList PlayerManager::POSITION_NAMES = { QString("Top Left"),    QString("Top Center"),    QString("Top Right"),
+                                                    QString("Center Left"), QString("Center"),        QString("Center Right"),
+                                                    QString("Bottom Left"), QString("Bottom Center"), QString("Bottom Right") };
 
 const QStringList PlayerManager::SUBTITLES_EXTENSIONS = { "*.srt", "*.sub", "*.ssa", "*.ass", "*.idx", "*.txt", "*.smi", "*.rt", "*.utf", "*.aqt"};
 
@@ -57,6 +51,7 @@ PlayerManager::PlayerManager(const QString &playerPath)
 , m_videoWidth      {0}
 , m_videoHeight     {0}
 , m_duration        {0}
+, m_paused          {false}
 {
   connect(&m_process, SIGNAL(readyReadStandardError()),
           this,       SLOT(onErrorAvailable()));
@@ -112,6 +107,7 @@ void PlayerManager::play(const QString& fileName)
   arguments << "-utf8";
   arguments << fileName;
 
+  m_paused = false;
   m_process.start(m_playerPath, arguments);
 }
 
@@ -131,6 +127,8 @@ void PlayerManager::stop()
     }
 
     m_duration = 0;
+
+    enableTiming(false);
   }
 }
 
@@ -350,6 +348,7 @@ void PlayerManager::onOutputAvailable()
     }
 
     auto dataString = QString().fromUtf8(data);
+
     if(dataString.startsWith("EOF code:"))
     {
       m_desktopWidget.hide();
@@ -359,12 +358,20 @@ void PlayerManager::onOutputAvailable()
 
     if(dataString.startsWith("ANS_LENGTH"))
     {
-      dataString.remove(dataString.length()-4,4);
       auto parts = dataString.split("=");
-
       if(parts.size() == 2)
       {
-        m_duration = parts[1].toInt();
+        for(auto sChar: parts[1])
+        {
+          if(sChar.isDigit())
+          {
+            m_duration = m_duration*10 + sChar.digitValue();
+          }
+          else
+          {
+            break;
+          }
+        }
       }
 
       return;
@@ -372,12 +379,25 @@ void PlayerManager::onOutputAvailable()
 
     if(m_timer.isActive() && dataString.startsWith("ANS_TIME_POSITION"))
     {
-      dataString.remove(dataString.length()-4,4);
+      dataString.remove(dataString.length()-1,1);
       auto parts = dataString.split("=");
 
       if(parts.size() == 2)
       {
-        emit time(parts[1].toFloat());
+        int timeSec = 0;
+        for(auto sChar: parts[1])
+        {
+          if(sChar.isDigit())
+          {
+            timeSec = timeSec*10 + sChar.digitValue();
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        emit time(timeSec);
       }
 
       return;
@@ -389,8 +409,6 @@ void PlayerManager::onOutputAvailable()
       auto resolution = parts[2].split('x');
       if(!resolution.isEmpty())
       {
-        if(m_videoWidth == resolution[0].toInt() && m_videoHeight == resolution[1].toInt()) return;
-
         if(m_widgetPositionNames.isEmpty())
         {
           computePositionsNames();
@@ -407,10 +425,10 @@ void PlayerManager::onOutputAvailable()
         auto widgetPos = m_widgetPosition.isEmpty() ? 0 : m_widgetPositionNames.indexOf(m_widgetPosition);
         m_desktopWidget.setPosition(m_widgetPositions.at(widgetPos));
 
+        setVideoProperties();
+
         m_process.write("get_time_length\n");
         m_process.waitForBytesWritten();
-
-        setVideoProperties();
 
         m_process.write("osd 1\n");
 
@@ -491,6 +509,49 @@ void PlayerManager::enableTiming(bool enabled)
 int PlayerManager::videoDuration() const
 {
   return m_duration;
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::pause()
+{
+  if(isPlaying())
+  {
+    m_paused = true;
+
+    if(m_timer.isActive())
+    {
+      disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(askTime()));
+    }
+    m_process.write("pause\n");
+    m_process.write("osd 0\n");
+    m_process.write("pausing volume 0 1\n");
+  }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::unpause()
+{
+  if(isPlaying())
+  {
+    m_paused = false;
+
+    if(m_timer.isActive())
+    {
+      connect(&m_timer, SIGNAL(timeout()), this, SLOT(askTime()));
+    }
+    m_process.write("pause\n");
+    m_process.write(QString("volume %1 1\n").arg(m_volume).toUtf8());
+    m_process.write("osd 1\n");
+  }
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setVideoTime(int seconds)
+{
+  if(isPlaying())
+  {
+    m_process.write(QString("%1seek %2 2\n").arg((m_paused ? "pausing " : "")).arg(seconds).toUtf8());
+  }
 }
 
 //-----------------------------------------------------------------

@@ -23,6 +23,8 @@
 // Qt
 #include <QWidget>
 
+class QEvent;
+
 /** \class DesktopWidget
  * \brief Widget to be on the desktop, invisible to events and always on top,
  *        showing the title and progression of the alarm.
@@ -60,6 +62,8 @@ class DesktopWidget
      *
      */
     void setVideoSize(const QSize &size);
+
+    virtual bool event(QEvent *e) override;
 };
 
 #endif // DESKTOPWIDGET_H_
