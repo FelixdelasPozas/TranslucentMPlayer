@@ -36,19 +36,19 @@ The only current option is build from source as binaries are not provided.
 # Screenshots
 MPlayer executable configuration and detection.
 
-![configuration]()
+![configuration](https://cloud.githubusercontent.com/assets/12167134/11912577/19d07d4a-a643-11e5-998c-95366e4cc673.jpg)
 
 Video display settings. 
 
-![settings]()
+![videoconf](https://cloud.githubusercontent.com/assets/12167134/11912580/1a3d6626-a643-11e5-940e-6dc2b907a18c.jpg)
 
 The video is completely transparent to events so the only way to control it is from the tray menu. The menu has widgets to play & pause the current video, volume modification & mute, and the current play list. 
 
-![trayicon]()
+![trayicon](https://cloud.githubusercontent.com/assets/12167134/11912579/19db2376-a643-11e5-9eea-7f5b928991f9.jpg)
 
 Watching a movie while coding...
 
-![example]()
+![example](https://cloud.githubusercontent.com/assets/12167134/11912578/19d569fe-a643-11e5-9a27-7e2f6e7ae9c2.jpg)
 
 # Repository information
 
