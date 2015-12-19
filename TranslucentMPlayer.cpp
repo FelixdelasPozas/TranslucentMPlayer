@@ -62,8 +62,6 @@ TranslucentMPlayer::TranslucentMPlayer()
 , m_icon   {QIcon(":TranslucentMPlayer/film.svg"), this}
 , m_paused {false}
 {
-  loadSettings();
-
   auto menu = new QMenu{};
 
   m_progressWidget = new ProgressWidgetAction(100, 0, menu);
@@ -108,6 +106,8 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   connect(menu, SIGNAL(aboutToShow()), this, SLOT(onMenuShow()));
   connect(menu, SIGNAL(aboutToHide()), this, SLOT(onMenuHide()));
+
+  loadSettings();
 }
 
 //-----------------------------------------------------------------
@@ -338,6 +338,7 @@ void TranslucentMPlayer::onManagerFinishedPlaying()
   }
 
   m_progressWidget->reset();
+  m_volumeWidget->reset();
 }
 
 //-----------------------------------------------------------------
@@ -400,7 +401,10 @@ void TranslucentMPlayer::play(const QString &fileName)
     m_icon.contextMenu()->hide();
   }
 
+  m_volume = m_volumeWidget->isMuted() ? m_volumeWidget->volume() : m_volume;
+
   m_progressWidget->reset();
+  m_volumeWidget->reset();
 
   if(m_paused)
   {
@@ -416,7 +420,6 @@ void TranslucentMPlayer::play(const QString &fileName)
 
     m_manager->setOpacity(m_opacity);
     m_manager->setSize(m_size);
-    m_manager->setVolume(m_volume);
     m_manager->setBrightness(m_brightness);
     m_manager->setContrast(m_contrast);
     m_manager->setGamma(m_gamma);
@@ -425,6 +428,8 @@ void TranslucentMPlayer::play(const QString &fileName)
     m_manager->setWidgetPosition(m_position);
     m_manager->enableSubtitles(m_subtitlesEnabled);
   }
+
+  m_manager->setVolume(m_volume);
 
   m_manager->play(fileName);
 }
@@ -446,7 +451,6 @@ void TranslucentMPlayer::loadSettings()
   m_hue              = settings.value(KEY_VIDEO_HUE,        0).toInt();
   m_saturation       = settings.value(KEY_VIDEO_SATURATION, 0).toInt();
   m_subtitlesEnabled = settings.value(KEY_SHOW_SUBTITLES,   false).toBool();
-
 }
 
 //-----------------------------------------------------------------

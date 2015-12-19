@@ -75,7 +75,6 @@ bool DesktopWidget::event(QEvent* e)
      (e->type() == QEvent::WindowStateChange))
   {
     this->raise();
-    this->activateWindow();
     return true;
   }
 

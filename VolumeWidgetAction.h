@@ -50,14 +50,47 @@ class VolumeWidgetAction
      */
     void setVolume(int value);
 
+    /** \brief Resets the state of the volume mute button.
+     *
+     */
+    void reset();
+
+    /** \brief Returns true if muted and false otherwise.
+     *
+     */
+    bool isMuted() const;
+
+    /** \brief Returns the volume value.
+     *
+     */
+    int volume() const;
+
   signals:
     void volumeChanged(int value);
+
+  private slots:
+    /** \brief Modifies the volume, muting if the parameter is true and restoring it to the previous value otherwise.
+     *
+     */
+    void onButtonClicked(bool state);
+
+    /** \brief Emits the signal and stores the value.
+     * \param[in] value volume value in [0-100].
+     *
+     */
+    void onVolumeChanged(int value);
 
   protected:
     virtual QWidget *createWidget(QWidget *parent) override final;
 
   private:
-    int m_volume; /** starting value for volume slider .*/
+    /** \brief Adjusts the widgets value to the given volume value.
+     * \param[in] value volume value in [0-100]
+     */
+    void setWidgets(int value);
+
+    int  m_volume; /** starting value for volume slider . */
+    bool m_muted;  /** true if muted and false otherwise. */
 };
 
 #endif // VOLUMEWIDGETACTION_H_

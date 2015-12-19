@@ -177,7 +177,7 @@ void PlayerManager::setVolume(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("volume %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1volume %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -224,7 +224,7 @@ void PlayerManager::setBrightness(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("brightness %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1brightness %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -244,7 +244,7 @@ void PlayerManager::setContrast(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("contrast %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1contrast %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -264,7 +264,7 @@ void PlayerManager::setGamma(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("gamma %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1gamma %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -284,7 +284,7 @@ void PlayerManager::setHue(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("hue %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1hue %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -304,7 +304,7 @@ void PlayerManager::setSaturation(int value)
 
     if(isPlaying())
     {
-      m_process.write(QString("saturation %1 1\n").arg(value).toUtf8());
+      m_process.write(QString("%1saturation %2 1\n").arg(m_paused ? "pausing " : "").arg(value).toUtf8());
     }
   }
 }
@@ -358,6 +358,7 @@ void PlayerManager::onOutputAvailable()
 
     if(dataString.startsWith("ANS_LENGTH"))
     {
+      m_duration = 0;
       auto parts = dataString.split("=");
       if(parts.size() == 2)
       {
@@ -633,22 +634,22 @@ void PlayerManager::loadSubtitles()
   {
     auto file = path.absoluteFilePath(subtitleFiles.first());
 
-    m_process.write(QString("sub_load \"%1\"\n").arg(file).toUtf8());
+    m_process.write(QString("%1sub_load \"%2\"\n").arg(m_paused ? "pausing " : "").arg(file).toUtf8());
   }
 
   // enables internal subtitles if embedded in video and there's no separated subtitle files.
-  m_process.write("sub_select 0\n");
+  m_process.write(QString("%1sub_select 0\n").arg(m_paused ? "pausing " : "").toUtf8());
 }
 
 //-----------------------------------------------------------------
 void PlayerManager::unloadSubtitles()
 {
-  m_process.write("sub_remove\n");
-  m_process.write("sub_select -1\n");
+  m_process.write(QString("%1sub_remove\n").arg(m_paused ? "pausing " : "").toUtf8());
+  m_process.write(QString("%1sub_select -1\n").arg(m_paused ? "pausing " : "").toUtf8());
 }
 
 //-----------------------------------------------------------------
 void PlayerManager::askTime()
 {
-  m_process.write("get_time_pos\n");
+  m_process.write(QString("%1get_time_pos\n").arg(m_paused ? "pausing " : "").toUtf8());
 }

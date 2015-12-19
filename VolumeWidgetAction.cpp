@@ -31,24 +31,92 @@
 VolumeWidgetAction::VolumeWidgetAction(int startValue, QObject* parent)
 : QWidgetAction{parent}
 , m_volume     {startValue}
+, m_muted      {false}
 {
 }
 
 //-----------------------------------------------------------------
 void VolumeWidgetAction::setVolume(int value)
 {
+  if(!isMuted() && m_volume != value)
+  {
+    setWidgets(value);
+    m_volume = value;
+  }
+}
+
+//-----------------------------------------------------------------
+void VolumeWidgetAction::reset()
+{
+  m_muted = false;
+
+  blockSignals(true);
+  for(auto widget: createdWidgets())
+  {
+    auto item = widget->layout()->itemAt(0);
+    auto button = qobject_cast<QPushButton *>(item->widget());
+    button->setChecked(false);
+    if(m_volume != 0)
+    {
+      button->setIcon(QIcon(":/TranslucentMPlayer/speaker.svg"));
+    }
+    else
+    {
+      button->setIcon(QIcon(":/TranslucentMPlayer/mute.svg"));
+    }
+
+    item = widget->layout()->itemAt(1);
+    auto slider = qobject_cast<QSlider *>(item->widget());
+    slider->setValue(m_volume);
+  }
+  blockSignals(false);
+}
+
+//-----------------------------------------------------------------
+bool VolumeWidgetAction::isMuted() const
+{
+  return m_muted;
+}
+
+//-----------------------------------------------------------------
+int VolumeWidgetAction::volume() const
+{
+  return m_volume;
+}
+
+//-----------------------------------------------------------------
+void VolumeWidgetAction::onButtonClicked(bool enabled)
+{
+  if(enabled)
+  {
+    if(m_volume != 0)
+    {
+      auto volume = m_volume;
+      setWidgets(0);
+      emit volumeChanged(0);
+      m_volume = volume;
+    }
+  }
+  else
+  {
+    if(m_volume != 0)
+    {
+      setWidgets(m_volume);
+      emit volumeChanged(m_volume);
+    }
+  }
+
+  m_muted = enabled;
+}
+
+//-----------------------------------------------------------------
+void VolumeWidgetAction::onVolumeChanged(int value)
+{
   if(m_volume != value)
   {
-    blockSignals(true);
-    for(auto widget: createdWidgets())
-    {
-      auto item = widget->layout()->itemAt(1);
-      auto slider = qobject_cast<QSlider *>(item->widget());
-      slider->setValue(value);
-    }
-    blockSignals(false);
-
     m_volume = value;
+    setWidgets(value);
+    emit volumeChanged(value);
   }
 }
 
@@ -60,9 +128,10 @@ QWidget* VolumeWidgetAction::createWidget(QWidget* parent)
   layout->setContentsMargins(3,3,3,3);
   layout->setMargin(3);
 
-  auto label = new QLabel();
-  label->setFixedSize(QSize{20,20});
-  label->setPixmap(QIcon(":/TranslucentMPlayer/speaker.svg").pixmap(QSize{18,18}));
+  auto button = new QPushButton();
+  button->setCheckable(true);
+  button->setFixedSize(QSize{24,24});
+  button->setIcon(QIcon(":/TranslucentMPlayer/speaker.svg"));
 
   auto slider = new QSlider(Qt::Horizontal);
   slider->setMinimum(0);
@@ -70,13 +139,38 @@ QWidget* VolumeWidgetAction::createWidget(QWidget* parent)
   slider->setValue(m_volume);
   slider->setFixedHeight(20);
 
-  connect(slider, SIGNAL(valueChanged(int)), this, SIGNAL(volumeChanged(int)));
+  connect(button, SIGNAL(clicked(bool)),     this, SLOT(onButtonClicked(bool)));
+  connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onVolumeChanged(int)));
 
-  layout->addWidget(label, 0);
+  layout->addWidget(button, 0);
   layout->addWidget(slider, 1);
 
   auto widget = new QWidget(parent);
   widget->setLayout(layout);
 
   return widget;
+}
+
+//-----------------------------------------------------------------
+void VolumeWidgetAction::setWidgets(int value)
+{
+  blockSignals(true);
+  for(auto widget: createdWidgets())
+  {
+    auto item = widget->layout()->itemAt(0);
+    auto button = qobject_cast<QPushButton *>(item->widget());
+    if(value == 0)
+    {
+      button->setIcon(QIcon(":/TranslucentMPlayer/mute.svg"));
+    }
+    else
+    {
+      button->setIcon(QIcon(":/TranslucentMPlayer/speaker.svg"));
+    }
+
+    item = widget->layout()->itemAt(1);
+    auto slider = qobject_cast<QSlider *>(item->widget());
+    slider->setValue(value);
+  }
+  blockSignals(false);
 }
