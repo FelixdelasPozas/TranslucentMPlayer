@@ -35,7 +35,10 @@ VideoConfigurationDialog::VideoConfigurationDialog(PlayerManager *manager, QWidg
 
   auto names = m_manager->widgetPositionNames();
   m_positionComboBox->insertItems(0, names);
-  m_positionComboBox->setCurrentIndex(names.indexOf(m_manager->widgetPosition()));
+
+  auto position = m_manager->widgetPosition();
+  auto index = position.isEmpty() ? 0 : names.indexOf(m_manager->widgetPosition());
+  m_positionComboBox->setCurrentIndex(index);
 
   connectSignals();
 
