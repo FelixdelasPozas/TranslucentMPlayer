@@ -458,11 +458,16 @@ const QSize PlayerManager::videoSize() const
 //-----------------------------------------------------------------
 void PlayerManager::setWidgetPosition(const QString &positionName)
 {
+  if(m_widgetPositionNames.isEmpty())
+  {
+    computePositionsNames();
+  }
+
   if(m_widgetPosition.isEmpty() || (m_widgetPosition != positionName))
   {
     m_widgetPosition = positionName;
 
-    if(!positionName.isEmpty() && !m_widgetPositionNames.isEmpty() && m_widgetPositionNames.contains(positionName))
+    if(!positionName.isEmpty() && m_widgetPositionNames.contains(positionName) && !m_widgetPositions.isEmpty())
     {
       auto position = m_widgetPositions.at(m_widgetPositionNames.indexOf(positionName));
       m_desktopWidget.setPosition(position);
