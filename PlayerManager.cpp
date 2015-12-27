@@ -88,6 +88,8 @@ void PlayerManager::play(const QString& fileName)
   arguments << "gl";
   arguments << "-ao";
   arguments << "win32";
+  arguments << "-af";
+  arguments << "equalizer=7:7:7:7:7:7:7:7:7:7"; // little volume boost
   arguments << "-cache";
   arguments << "16384";
   arguments << "-idle";
