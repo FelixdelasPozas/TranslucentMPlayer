@@ -84,29 +84,23 @@ void PlayerManager::play(const QString& fileName)
 
   QStringList arguments;
   arguments << "-slave";
-  arguments << "-vo";
-  arguments << "gl";
-  arguments << "-ao";
-  arguments << "win32";
-  arguments << "-af";
-  arguments << "equalizer=7:7:7:7:7:7:7:7:7:7"; // little volume boost
-  arguments << "-cache";
-  arguments << "16384";
+  arguments << "-vo" << "gl:nomanyfmts";
+  arguments << "-ao" << "win32";
+  arguments << "-af" << "equalizer=6:6:6:6:6:6:6:6:6:6"; // little volume boost
+  arguments << "-cache" << "16384";
   arguments << "-idle";
-  arguments << "-msglevel";
-  arguments << "statusline=6:global=6";
-  arguments << "-osdlevel";
-  arguments << "0";
-  arguments << "-wid";
-  arguments << QString().number(static_cast<int>(m_desktopWidget.winId()));
+  arguments << "-msglevel" << "statusline=6:global=6";
+  arguments << "-osdlevel" << "0";
+  arguments << "-wid" << QString().number(static_cast<int>(m_desktopWidget.winId()));
   arguments << "-framedrop";
   arguments << "-nomouseinput";
   arguments << "-nokeepaspect";
-  arguments << "-monitorpixelaspect";
-  arguments << "1";
+  arguments << "-monitorpixelaspect" << "1";
   arguments << "-noborder";
   arguments << "-noautosub";
   arguments << "-utf8";
+  arguments << "-subcp" << "latin1";
+  arguments << "-spuaa" << "4";
   arguments << fileName;
 
   m_paused = false;
