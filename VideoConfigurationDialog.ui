@@ -6,9 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>486</width>
     <height>343</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>486</width>
+    <height>343</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>486</width>
+    <height>343</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Video Configuration</string>
@@ -632,7 +644,7 @@
       <string>Load and show video subtitles if available</string>
      </property>
      <property name="text">
-      <string>Show video subtitles if available</string>
+      <string>Show video subtitles if available. Subtitles file must be in the same directory as the video file.</string>
      </property>
     </widget>
    </item>

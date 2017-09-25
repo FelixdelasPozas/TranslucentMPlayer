@@ -9,10 +9,12 @@ Translucent MPlayer
 - [Repository information](#repository-information)
 
 # Description
-Translucent MPlayer is a mplayer frontend for displaying a always-on-top, translucent, borderless and transparent to events (click-throught) video on the desktop.
+Translucent MPlayer is a mplayer frontend for displaying a always-on-top, translucent, borderless and transparent to events (click-throught) video on the desktop. 
+It requires an MPlayer executable. Some popular players (like SMPlayer) comes with a suitable MPlayer that can be used with Translucent MPlayer. If you don't have one
+you can download one from the [official MPlayer website](http://www.mplayerhq.hu). 
 
 ## Options
-It's not a full featured frontent supporting only a minimal set of options:
+Translucent MPlayer it's not a full featured frontent, it only supports a minimal set of options:
 * Brightness, contrast, hue, saturation and gamma configuration for video display.
 * Video opacity configuration. 
 * Playlist support. 
@@ -31,7 +33,7 @@ The following libraries are required:
 * [MPlayer](http://www.mplayerhq.hu/).
 
 # Install
-The only current option is build from source as binaries are not provided. 
+Download and execute the latest installer from the [releases](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases) page. 
 
 # Screenshots
 MPlayer executable configuration and detection.
@@ -52,15 +54,17 @@ Watching a movie while coding...
 
 # Repository information
 
-**Version**: 1.1.1
+**Version**: 1.1.2
 
 **Status**: finished
+
+**License**: GNU General Public License 3
 
 **cloc statistics**
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   9           | 343         |   260            | 1401 |
+| C++                          |   9           | 344         |   260            | 1401 |
 | C/C++ Header                 |   8           | 179         |   518            |  306 |
 | CMake                        |   1           |  17         |    13            |   60 |
-| **Total**                    | **18**        | **539**     | **791**          | **1767** |
+| **Total**                    | **18**        | **540**     | **791**          | **1767** |

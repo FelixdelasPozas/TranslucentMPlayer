@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>424</width>
-    <height>103</height>
+    <width>556</width>
+    <height>152</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>424</width>
-    <height>103</height>
+    <width>556</width>
+    <height>152</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>424</width>
-    <height>103</height>
+    <width>556</width>
+    <height>152</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,11 +31,30 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TranslucentMPlayer frontend requires an MPlayer executable. Some popular players (like SMPlayer) comes with a suitable MPlayer that can be used. If you don't have one installed you can download one from the &lt;a href=&quot;http://www.mplayerhq.hu&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;official MPlayer website&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="1" column="1">
       <widget class="QLabel" name="m_versionText">
        <property name="text">
-        <string/>
+        <string>MPlayer not detected.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -54,7 +73,7 @@
         <string>Video volume</string>
        </property>
        <property name="text">
-        <string>Version</string>
+        <string>Detected version</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -70,6 +89,18 @@
          </property>
          <property name="statusTip">
           <string>MPlayer executable</string>
+         </property>
+         <property name="frame">
+          <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="placeholderText">
+          <string>Please enter the location of the MPlayer executable</string>
          </property>
         </widget>
        </item>
@@ -107,7 +138,7 @@
         <string>MPlayer executable</string>
        </property>
        <property name="text">
-        <string>MPlayer</string>
+        <string>MPlayer executable</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>

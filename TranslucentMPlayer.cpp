@@ -121,7 +121,7 @@ bool TranslucentMPlayer::start()
 {
   auto mplayerFile = QFileInfo{m_playerPath};
 
-  if(!mplayerFile.isExecutable() || !mplayerFile.isReadable())
+  if(m_playerPath.isEmpty() || !mplayerFile.isExecutable() || !mplayerFile.isReadable())
   {
     onConfigTriggered();
   }
@@ -437,7 +437,7 @@ void TranslucentMPlayer::play(const QString &fileName)
 //-----------------------------------------------------------------
 void TranslucentMPlayer::loadSettings()
 {
-  QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
+  QSettings settings("Felix de las Pozas Alvarez", "TranslucentMplayer");
 
   m_playerPath       = settings.value(KEY_MPLAYER_PATH,     QString()).toString();
   m_lastPath         = settings.value(KEY_LAST_DIR,         QString()).toString();
@@ -458,7 +458,7 @@ void TranslucentMPlayer::saveSettings()
 {
   if(m_manager)
   {
-    QSettings settings{SETTINGS_FILENAME, QSettings::IniFormat};
+    QSettings settings("Felix de las Pozas Alvarez", "TranslucentMplayer");
 
     settings.setValue(KEY_MPLAYER_PATH,     m_playerPath);
     settings.setValue(KEY_LAST_DIR,         m_lastPath);

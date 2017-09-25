@@ -35,6 +35,8 @@ ConfigurationDialog::ConfigurationDialog(QWidget *parent, Qt::WindowFlags flags)
 
   connect(m_pathButton, SIGNAL(clicked()),
           this,         SLOT(onDirButtonPressed()));
+
+  m_pathButton->setFocus();
 }
 
 //-----------------------------------------------------------------
@@ -46,8 +48,7 @@ const QString ConfigurationDialog::mplayerPath() const
 //-----------------------------------------------------------------
 void ConfigurationDialog::setMplayerPath(const QString &path)
 {
-  auto filePath = path;
-  filePath = filePath.replace('/', QDir::separator());
+  auto filePath = QDir::toNativeSeparators(path);
 
   m_playerPath->setText(filePath);
   m_versionText->setText(mplayerVersion());
