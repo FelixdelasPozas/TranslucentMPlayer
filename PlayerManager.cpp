@@ -86,11 +86,12 @@ void PlayerManager::play(const QString& fileName)
   arguments << "-slave";
   arguments << "-vo" << "gl:nomanyfmts";
   arguments << "-ao" << "win32";
-  arguments << "-af" << "equalizer=6:6:6:6:6:6:6:6:6:6"; // little volume boost
+  arguments << "-af" << "equalizer=4:4:4:4:4:4:4:4:4:4"; // little volume boost
+  arguments << "-volume" << QString().number(m_volume);
   arguments << "-cache" << "16384";
   arguments << "-idle";
   arguments << "-msglevel" << "statusline=6:global=6";
-  arguments << "-osdlevel" << "0";
+  arguments << "-osdlevel" << "0"; // subtitles only
   arguments << "-wid" << QString().number(static_cast<int>(m_desktopWidget.winId()));
   arguments << "-framedrop";
   arguments << "-nomouseinput";

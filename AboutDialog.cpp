@@ -20,7 +20,10 @@
 // Project
 #include "AboutDialog.h"
 
-const QString AboutDialog::VERSION = QString("version 1.1.2");
+// Qt
+#include <QtGlobal>
+
+const QString AboutDialog::VERSION = QString("version 1.1.3");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -35,4 +38,6 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
+
+  m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
 }

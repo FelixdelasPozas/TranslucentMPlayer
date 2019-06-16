@@ -366,7 +366,11 @@ void TranslucentMPlayer::onProgressChanged(int value)
 //-----------------------------------------------------------------
 void TranslucentMPlayer::onVolumeChanged(int value)
 {
-  m_manager->setVolume(value);
+  if(m_volume != value)
+  {
+    m_volume = value;
+    m_manager->setVolume(value);
+  }
 }
 
 //-----------------------------------------------------------------
