@@ -54,7 +54,7 @@ Watching a movie while coding...
 
 # Repository information
 
-**Version**: 1.1.2
+**Version**: 1.1.3
 
 **Status**: finished
 
@@ -64,7 +64,7 @@ Watching a movie while coding...
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   9           | 344         |   260            | 1401 |
+| C++                          |   9           | 349         |   261            | 1411 |
 | C/C++ Header                 |   8           | 179         |   518            |  306 |
-| CMake                        |   1           |  17         |    13            |   60 |
-| **Total**                    | **18**        | **540**     | **791**          | **1767** |
+| CMake                        |   1           |  17         |    13            |   61 |
+| **Total**                    | **18**        | **545**     | **792**          | **1778** |
