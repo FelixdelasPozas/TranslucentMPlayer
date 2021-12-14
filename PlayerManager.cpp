@@ -124,6 +124,7 @@ void PlayerManager::stop()
     }
 
     m_duration = 0;
+    m_desktopWidget.hide();
 
     enableTiming(false);
   }

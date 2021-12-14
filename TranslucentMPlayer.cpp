@@ -75,12 +75,14 @@ TranslucentMPlayer::TranslucentMPlayer()
   connect(m_volumeWidget, SIGNAL(volumeChanged(int)), this, SLOT(onVolumeChanged(int)));
 
   auto open   = new QAction{QIcon{":/TranslucentMPlayer/folder.svg"},      tr("Add files to playlist..."), menu};
+  auto clear  = new QAction{                                               tr("New playlist..."),          menu};
   auto config = new QAction{QIcon{":/TranslucentMPlayer/config.svg"},      tr("Configure..."),             menu};
   auto video  = new QAction{QIcon{":/TranslucentMPlayer/videoconfig.svg"}, tr("Video Settings..."),        menu};
   auto about  = new QAction{QIcon{":/TranslucentMPlayer/film.svg"},        tr("About..."),                 menu};
   auto quit   = new QAction{QIcon{":/TranslucentMPlayer/exit.svg"},        tr("Quit"),                     menu};
 
   connect(open,   SIGNAL(triggered(bool)), this, SLOT(openMediaFile()));
+  connect(clear,  SIGNAL(triggered(bool)), this, SLOT(onClearPlaylistTriggered()));
   connect(config, SIGNAL(triggered(bool)), this, SLOT(onConfigTriggered()));
   connect(video,  SIGNAL(triggered(bool)), this, SLOT(onVideoSettingsTriggered()));
   connect(about,  SIGNAL(triggered(bool)), this, SLOT(onAboutTriggered()));
@@ -94,6 +96,7 @@ TranslucentMPlayer::TranslucentMPlayer()
   menu->addAction(m_volumeWidget);
   menu->addSeparator();
   menu->addAction(open);
+  menu->addAction(clear);
   menu->addSeparator();
   menu->addMenu(m_playListMenu);
   menu->addSeparator();
@@ -108,6 +111,24 @@ TranslucentMPlayer::TranslucentMPlayer()
   connect(menu, SIGNAL(aboutToHide()), this, SLOT(onMenuHide()));
 
   loadSettings();
+
+  m_manager = new PlayerManager(m_playerPath);
+
+  connect(m_manager, SIGNAL(finishedPlaying()),
+          this,      SLOT(onManagerFinishedPlaying()));
+
+  m_manager->setOpacity(m_opacity);
+  m_manager->setSize(m_size);
+  m_manager->setBrightness(m_brightness);
+  m_manager->setContrast(m_contrast);
+  m_manager->setGamma(m_gamma);
+  m_manager->setHue(m_hue);
+  m_manager->setSaturation(m_saturation);
+  m_manager->setWidgetPosition(m_position);
+  m_manager->enableSubtitles(m_subtitlesEnabled);
+  m_manager->setVolume(m_volume);
+
+  m_icon.show();
 }
 
 //-----------------------------------------------------------------
@@ -207,8 +228,7 @@ void TranslucentMPlayer::openMediaFile()
     auto message = tr("Can't add the following files, they're already in the playlist.\n\n");
     for (auto file : invalidFiles)
     {
-      auto info = QFileInfo
-      { file };
+      auto info = QFileInfo{file};
       message += "- " + info.baseName() + "\n";
     }
 
@@ -218,11 +238,6 @@ void TranslucentMPlayer::openMediaFile()
 
   if(!validFiles.isEmpty())
   {
-    if(!m_icon.isVisible())
-    {
-      m_icon.show();
-    }
-
     if(!m_manager || !m_manager->isPlaying())
     {
       auto file = validFiles.first();
@@ -263,6 +278,103 @@ void TranslucentMPlayer::onPlaylistItemTriggered()
 }
 
 //-----------------------------------------------------------------
+void TranslucentMPlayer::onClearPlaylistTriggered()
+{
+  if(m_manager->isPlaying())
+  {
+    m_manager->stop();
+  }
+
+  QStringList filters;
+  filters << FILES_FILTER_VIDEO << FILES_FILTER_ALL;
+
+  auto directory = QDir::current();
+  if(!m_lastPath.isEmpty())
+  {
+    directory = QDir{m_lastPath};
+    if(!directory.exists() && !directory.isRoot())
+    {
+      directory.cdUp();
+    }
+
+    if(directory.isRoot())
+    {
+      directory = QDir::current();
+    }
+  }
+
+  QFileDialog openDialog;
+  openDialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+  openDialog.setWindowTitle(tr("Open media file"));
+  openDialog.setDirectory(directory);
+  openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  openDialog.setReadOnly(true);
+  openDialog.setNameFilters(filters);
+  openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
+  openDialog.setLabelText(QFileDialog::Reject, (m_playList.isEmpty() ? tr("Quit") : tr("Cancel")));
+  openDialog.setFileMode(QFileDialog::ExistingFiles);
+
+  if((openDialog.exec() != QDialog::Accepted) || openDialog.selectedFiles().isEmpty())
+  {
+    return;
+  }
+
+  auto files = openDialog.selectedFiles();
+  QStringList invalidFiles, validFiles;
+
+  for(auto file: files)
+  {
+    if(validFiles.contains(file))
+    {
+      invalidFiles << file;
+      continue;
+    }
+
+    validFiles << file;
+  }
+
+  if(!invalidFiles.isEmpty())
+  {
+    QMessageBox dialog;
+    dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+    dialog.setWindowTitle(tr("Files already in the playlist"));
+    dialog.setIcon(QMessageBox::Information);
+
+    auto message = tr("Can't add the following files, they're already in the playlist.\n\n");
+    for (auto file : invalidFiles)
+    {
+      auto info = QFileInfo{file};
+      message += "- " + info.baseName() + "\n";
+    }
+
+    dialog.setText(message);
+    dialog.exec();
+  }
+
+  if(!validFiles.isEmpty())
+  {
+    m_playList = validFiles;
+    m_playListMenu->clear();
+
+    for(auto file: validFiles)
+    {
+      auto info       = QFileInfo{file};
+      auto fileAction = new QAction{info.baseName(), m_playListMenu};
+
+      connect(fileAction, SIGNAL(triggered()), this, SLOT(onPlaylistItemTriggered()));
+
+      m_lastPath = info.absolutePath();
+
+      m_playListMenu->addAction(fileAction);
+    }
+
+    m_playListMenu->actions().at(0)->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
+
+    play(m_playList.first());
+  }
+}
+
+//-----------------------------------------------------------------
 void TranslucentMPlayer::onVideoSettingsTriggered()
 {
   VideoConfigurationDialog dialog(m_manager);
@@ -294,22 +406,19 @@ void TranslucentMPlayer::onConfigTriggered()
   {
     m_playerPath = conf.mplayerPath();
 
-    if(m_manager)
+    m_manager->setMPlayerPath(m_playerPath);
+
+    if (m_manager->isPlaying())
     {
-      m_manager->setMPlayerPath(m_playerPath);
+      m_manager->stop();
 
-      if(m_manager->isPlaying())
+      auto actions = m_playListMenu->actions();
+      for (int i = 0; i < actions.size(); ++i)
       {
-        m_manager->stop();
-
-        auto actions = m_playListMenu->actions();
-        for(int i = 0; i < actions.size(); ++i)
+        if (!actions[i]->icon().isNull())
         {
-          if(!actions[i]->icon().isNull())
-          {
-            play(m_playList.at(i));
-            return;
-          }
+          play(m_playList.at(i));
+          return;
         }
       }
     }
@@ -412,28 +521,9 @@ void TranslucentMPlayer::play(const QString &fileName)
 
   if(m_paused)
   {
-    onWidgetPlay();
+    m_manager->stop();
+    m_paused = false;
   }
-
-  if(!m_manager)
-  {
-    m_manager = new PlayerManager(m_playerPath);
-
-    connect(m_manager, SIGNAL(finishedPlaying()),
-            this,      SLOT(onManagerFinishedPlaying()));
-
-    m_manager->setOpacity(m_opacity);
-    m_manager->setSize(m_size);
-    m_manager->setBrightness(m_brightness);
-    m_manager->setContrast(m_contrast);
-    m_manager->setGamma(m_gamma);
-    m_manager->setHue(m_hue);
-    m_manager->setSaturation(m_saturation);
-    m_manager->setWidgetPosition(m_position);
-    m_manager->enableSubtitles(m_subtitlesEnabled);
-  }
-
-  m_manager->setVolume(m_volume);
 
   m_manager->play(fileName);
 }

@@ -131,6 +131,11 @@ class TranslucentMPlayer
      */
     void onMenuHide();
 
+    /** \brief Clears the playlist and ask for new files.
+     *
+     */
+    void onClearPlaylistTriggered();
+
   private:
     /** \brief Plays the given file.
      * \param[in] fileName file absolute file path.
