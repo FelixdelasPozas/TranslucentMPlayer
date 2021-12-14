@@ -36,6 +36,9 @@ The following libraries are required:
 Download and execute the latest installer from the [releases](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases) page. 
 
 # Screenshots
+
+> **_NOTE:_**  Some screenshots are from older versions and might be different from the ones in the latest version. 
+
 MPlayer executable configuration and detection.
 
 ![configuration](https://cloud.githubusercontent.com/assets/12167134/11912577/19d07d4a-a643-11e5-998c-95366e4cc673.jpg)
@@ -54,7 +57,7 @@ Watching a movie while coding...
 
 # Repository information
 
-**Version**: 1.1.3
+**Version**: 1.2.0
 
 **Status**: finished
 
@@ -64,7 +67,7 @@ Watching a movie while coding...
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   9           | 349         |   261            | 1411 |
-| C/C++ Header                 |   8           | 179         |   518            |  306 |
+| C++                          |   9           | 368         |   262            | 1485 |
+| C/C++ Header                 |   8           | 180         |   521            |  307 |
 | CMake                        |   1           |  17         |    13            |   61 |
-| **Total**                    | **18**        | **545**     | **792**          | **1778** |
+| **Total**                    | **18**        | **565**     | **796**          | **1853** |
