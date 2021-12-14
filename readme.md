@@ -37,7 +37,7 @@ Download and execute the latest installer from the [releases](https://github.com
 
 # Screenshots
 
-> **_NOTE:_**  Some screenshots are from older versions and might be different from the ones in the latest version. 
+> **_NOTE:_**  Some screenshots are from older versions. Latest version might be slightly different. 
 
 MPlayer executable configuration and detection.
 
