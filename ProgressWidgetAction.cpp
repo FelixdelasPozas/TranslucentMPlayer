@@ -98,6 +98,9 @@ void ProgressWidgetAction::reset()
     label->setText("00:00:00");
   }
 
+  m_current = 0;
+  m_maxValue = 100;
+
   blockSignals(false);
 }
 
