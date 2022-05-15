@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QProcess>
 #include <QMessageBox>
+#include <QScreen>
 
 const QString TranslucentMPlayer::SETTINGS_FILENAME    = "TranslucentMPlayer.ini";
 const QString TranslucentMPlayer::KEY_MPLAYER_PATH     = "MPlayer executable path";
@@ -55,6 +56,8 @@ const QString FILES_FILTER_VIDEO = QObject::tr("Video files (*.avi *.vfw *.divx 
                                                " *.hdmov *.webm *.vp8 *.bik *.smk *.m4b *.wtv)");
 
 const QString FILES_FILTER_ALL   = QObject::tr("All files (*.*)");
+
+constexpr const char SCREEN_INDEX[] = "screenInt";
 
 //-----------------------------------------------------------------
 TranslucentMPlayer::TranslucentMPlayer()
@@ -91,6 +94,23 @@ TranslucentMPlayer::TranslucentMPlayer()
   m_playListMenu = new QMenu{"Playlist"};
   m_playListMenu->setIcon(QIcon{":/TranslucentMPlayer/list.svg"});
 
+  m_fullscreenMenu = new QMenu{"Fullscreen"};
+  m_fullscreenMenu->setIcon(QIcon{":/TranslucentMPlayer/fullscreen.svg"});
+  unsigned int i = 1;
+  for(auto screen: qApp->screens())
+  {
+    const auto geometry = screen->geometry();
+    auto action = new QAction{tr("Screen %1 (%2,%3, %4x%5)").arg(i)
+                                                            .arg(geometry.x()).arg(geometry.y())
+                                                            .arg(geometry.width()).arg(geometry.height()), menu};
+    action->setCheckable(true);
+    action->setProperty(SCREEN_INDEX, i-1);
+    ++i;
+
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(onFullscreenTriggered()));
+    m_fullscreenMenu->addAction(action);
+  }
+
   menu->addAction(m_progressWidget);
   menu->addSeparator();
   menu->addAction(m_volumeWidget);
@@ -99,6 +119,8 @@ TranslucentMPlayer::TranslucentMPlayer()
   menu->addAction(clear);
   menu->addSeparator();
   menu->addMenu(m_playListMenu);
+  menu->addSeparator();
+  menu->addMenu(m_fullscreenMenu);
   menu->addSeparator();
   menu->addAction(config);
   menu->addAction(video);
@@ -253,28 +275,31 @@ void TranslucentMPlayer::openMediaFile()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::onPlaylistItemTriggered()
 {
+  uncheckFullscreenActions();
+
   auto action = qobject_cast<QAction *>(sender());
-
-  auto menuActions = m_playListMenu->actions();
-
-  int index = 0;
-  for(int i = 0; i < menuActions.size(); ++i)
+  if(action)
   {
-    if(menuActions[i] == action)
+    auto actions = m_playListMenu->actions();
+    int index = 0;
+    for(int i = 0; i < actions.size(); ++i)
     {
-      action->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
-      index = i;
-    }
-    else
-    {
-      if(!menuActions[i]->icon().isNull())
+      if(actions[i] == action)
       {
-        menuActions[i]->setIcon(QIcon());
+        action->setIcon(QIcon(":/TranslucentMPlayer/play.svg"));
+        index = i;
+      }
+      else
+      {
+        if(!actions[i]->icon().isNull())
+        {
+          actions[i]->setIcon(QIcon());
+        }
       }
     }
-  }
 
-  play(m_playList.at(index));
+    play(m_playList.at(index));
+  }
 }
 
 //-----------------------------------------------------------------
@@ -428,6 +453,8 @@ void TranslucentMPlayer::onConfigTriggered()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::onManagerFinishedPlaying()
 {
+  uncheckFullscreenActions();
+
   int index = 0;
   auto actions = m_playListMenu->actions();
   for(auto action: actions)
@@ -566,5 +593,50 @@ void TranslucentMPlayer::saveSettings()
     settings.setValue(KEY_VIDEO_HUE,        m_manager->hue());
     settings.setValue(KEY_VIDEO_SATURATION, m_manager->saturation());
     settings.setValue(KEY_SHOW_SUBTITLES,   m_manager->subtitlesEnabled());
+  }
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::onFullscreenTriggered()
+{
+  auto action = qobject_cast<QAction *>(sender());
+  if(action)
+  {
+    const auto isChecked = action->isChecked();
+
+    for(auto a: m_fullscreenMenu->actions())
+    {
+      a->blockSignals(true);
+      a->setChecked(a == action && isChecked);
+      a->blockSignals(false);
+    }
+
+    if(!isChecked)
+    {
+      m_manager->setFullScreen(nullptr);
+    }
+    else
+    {
+      bool ok = false;
+      auto screenNum = action->property(SCREEN_INDEX).toInt(&ok);
+
+      if(ok && screenNum < qApp->screens().size())
+      {
+        const auto screen = qApp->screens().at(screenNum);
+        m_manager->setFullScreen(screen);
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------
+void TranslucentMPlayer::uncheckFullscreenActions()
+{
+  auto actions = m_fullscreenMenu->actions();
+  for(auto a: actions)
+  {
+    a->blockSignals(true);
+    a->setChecked(false);
+    a->blockSignals(false);
   }
 }

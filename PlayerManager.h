@@ -216,6 +216,13 @@ class PlayerManager
      */
     void setVideoTime(int seconds);
 
+    /** \brief Displays the video with full opacity in the given screen. If the
+     * screen pointer is null it returns to the non full-screen position and size.
+     * \param[in] screen QScreen raw pointer.
+     *
+     */
+    void setFullScreen(const QScreen *screen);
+
   signals:
     void finishedPlaying();
     void startedPlaying();

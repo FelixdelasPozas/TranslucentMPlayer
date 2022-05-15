@@ -136,6 +136,11 @@ class TranslucentMPlayer
      */
     void onClearPlaylistTriggered();
 
+    /** \brief Shows the video in a monitor in fullscreen mode with full opacity.
+     *
+     */
+    void onFullscreenTriggered();
+
   private:
     /** \brief Plays the given file.
      * \param[in] fileName file absolute file path.
@@ -152,6 +157,11 @@ class TranslucentMPlayer
      *
      */
     void saveSettings();
+
+    /** \brief Helper method to uncheck all fullscreen menu actions.
+     *
+     */
+    void uncheckFullscreenActions();
 
     static const QString SETTINGS_FILENAME;
     static const QString KEY_MPLAYER_PATH;
@@ -183,6 +193,7 @@ class TranslucentMPlayer
     PlayerManager  *m_manager;          /** player manager.                                  */
     QSystemTrayIcon m_icon;             /** application tray icon.                           */
     QMenu          *m_playListMenu;     /** playlist menu in tray icon.                      */
+    QMenu          *m_fullscreenMenu;   /** fullscreen monitors list.                        */
     bool            m_paused;           /** true if the video is paused and false otherwise. */
 
     ProgressWidgetAction *m_progressWidget; /** menu progress widget to set the progress and play/pause from tray. */

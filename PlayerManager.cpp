@@ -25,6 +25,7 @@
 #include <QDir>
 #include <QPoint>
 #include <QDebug>
+#include <QScreen>
 #include <QApplication>
 #include <QDesktopWidget>
 
@@ -418,13 +419,14 @@ void PlayerManager::onOutputAvailable()
 
         computePositions();
 
-        auto ratio = m_size/100.0;
+        const auto ratio = m_size/100.0;
         m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
 
-        auto widgetPos = m_widgetPosition.isEmpty() ? 0 : m_widgetPositionNames.indexOf(m_widgetPosition);
+        const auto widgetPos = m_widgetPosition.isEmpty() ? 0 : m_widgetPositionNames.indexOf(m_widgetPosition);
         m_desktopWidget.setPosition(m_widgetPositions.at(widgetPos));
 
         setVideoProperties();
+        m_desktopWidget.setOpacity(m_opacity);
 
         m_process.write("get_time_length\n");
         m_process.waitForBytesWritten();
@@ -588,7 +590,7 @@ void PlayerManager::computePositionsNames()
   {
     for(auto position: POSITION_NAMES)
     {
-      m_widgetPositionNames << QString("Monitor %1 ").arg(i) + position;
+      m_widgetPositionNames << QString("Monitor %1 ").arg(i+1) + position;
     }
   }
 }
@@ -643,6 +645,32 @@ void PlayerManager::loadSubtitles()
 
   // enables internal subtitles if embedded in video and there's no separated subtitle files.
   m_process.write(QString("%1sub_select 0\n").arg(m_paused ? "pausing " : "").toUtf8());
+}
+
+//-----------------------------------------------------------------
+void PlayerManager::setFullScreen(const QScreen *screen)
+{
+  if(screen)
+  {
+    const auto geometry = screen->geometry();
+    const auto ratio = std::min(static_cast<double>(geometry.width()) / m_videoWidth,
+                                static_cast<double>(geometry.height()) / m_videoHeight);
+    const auto newSize = QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)};
+    const QPoint origin = QPoint((geometry.width() - newSize.width())/2,(geometry.height() - newSize.height())/2);
+
+    m_desktopWidget.setOpacity(100);
+    m_desktopWidget.setVideoSize(newSize);
+    m_desktopWidget.setPosition(geometry.topLeft() + origin);
+  }
+  else
+  {
+    const auto position = m_widgetPositions.at(m_widgetPositionNames.indexOf(m_widgetPosition));
+    const auto ratio = m_size/100.0;
+
+    m_desktopWidget.setOpacity(m_opacity);
+    m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+    m_desktopWidget.setPosition(position);
+  }
 }
 
 //-----------------------------------------------------------------

@@ -12,5 +12,6 @@
 	<file>pause.svg</file>
 	<file>speaker.svg</file>
 	<file>mute.svg</file>
+  <file>fullscreen.svg</file>
   </qresource>
 </RCC>

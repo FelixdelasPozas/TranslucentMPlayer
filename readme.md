@@ -21,6 +21,7 @@ Translucent MPlayer it's not a full featured frontent, it only supports a minima
 * Subtitles support. 
 * Video geometry can be configured in size and can be positioned in several preset positions depending on desktop configuration (multiple monitors supported).
 * Controlled and configured from a tray icon menu. 
+* Fullscreen mode support (full size on the specified screen).
 
 # Compilation requirements
 ## To build the tool:
@@ -47,9 +48,9 @@ Video display settings.
 
 ![videoconf](https://cloud.githubusercontent.com/assets/12167134/11912580/1a3d6626-a643-11e5-940e-6dc2b907a18c.jpg)
 
-The video is completely transparent to events so the only way to control it is from the tray menu. The menu has widgets to play & pause the current video, volume modification & mute, and the current play list. 
+The video is completely transparent to events so the only way to control it is from the tray menu. The menu has widgets to play & pause the current video, volume modification & mute, the current play list and full-screen mode toggle. 
 
-![trayicon](https://cloud.githubusercontent.com/assets/12167134/11912579/19db2376-a643-11e5-9eea-7f5b928991f9.jpg)
+![trayicon](https://user-images.githubusercontent.com/12167134/168468708-55e3f730-7d7e-454c-bef4-6a4feb4a05be.png)
 
 Watching a movie while coding...
 
@@ -57,7 +58,7 @@ Watching a movie while coding...
 
 # Repository information
 
-**Version**: 1.2.0
+**Version**: 1.3.0
 
 **Status**: finished
 
@@ -67,7 +68,7 @@ Watching a movie while coding...
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   9           | 368         |   262            | 1485 |
-| C/C++ Header                 |   8           | 180         |   521            |  307 |
+| C++                          |   9           | 379         |   265            | 1571 |
+| C/C++ Header                 |   8           | 183         |   532            |  311 |
 | CMake                        |   1           |  17         |    13            |   61 |
-| **Total**                    | **18**        | **565**     | **796**          | **1853** |
+| **Total**                    | **18**        | **579**     | **810**          | **1943** |

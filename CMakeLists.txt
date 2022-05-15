@@ -9,7 +9,7 @@ cmake_policy(SET CMP0020 OLD)
 
 # Version Number
 set (TRANSLUCENTMPLAYER_VERSION_MAJOR 1)
-set (TRANSLUCENTMPLAYER_VERSION_MINOR 2)
+set (TRANSLUCENTMPLAYER_VERSION_MINOR 3)
 set (TRANSLUCENTMPLAYER_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
