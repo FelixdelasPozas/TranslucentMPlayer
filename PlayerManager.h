@@ -29,6 +29,10 @@
 #include <QObject>
 #include <QTimer>
 
+// C++
+#include <cmath>
+#include <functional>
+
 /** \class PlayerManager
  * \brief QProcress around mplayer wrapper.
  *
@@ -211,6 +215,11 @@ class PlayerManager
      */
     void unpause();
 
+    /** \brief Returns the filename of media being played or an empty string if stopped.
+     *
+     */
+    QString filename() const;
+
     /** \brief Seeks the video to the given position in seconds.
      *
      */
@@ -275,6 +284,17 @@ class PlayerManager
      *
      */
     void unloadSubtitles();
+
+    /** \brief Helper method that returns a video size according to given ratio.
+     * \param[in] ratio Double ratio value.
+     *
+     */
+    constexpr inline QSize computeSize(const double ratio,
+                                       std::function<double(double)> func = [](double x){ return std::nearbyint(x); } ) const
+    {
+      return QSize{static_cast<int>(func(m_videoWidth*ratio)),
+                   static_cast<int>(func(m_videoHeight*ratio))};
+    }
 
   private:
     static const QStringList SUBTITLES_EXTENSIONS; /** subtitle files extensions. */

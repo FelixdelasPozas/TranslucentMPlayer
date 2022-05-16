@@ -194,15 +194,15 @@ void PlayerManager::setSize(int value)
   {
     m_size = value;
 
-    auto ratio = value/100.0;
-    m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+    const auto ratio = value/100.0;
+    m_desktopWidget.setVideoSize(computeSize(ratio));
 
     computePositions();
 
     if(!m_widgetPositionNames.isEmpty())
     {
-      auto position = widgetPosition();
-      auto point = m_widgetPositions.at(m_widgetPositionNames.indexOf(position));
+      const auto position = widgetPosition();
+      const auto point = m_widgetPositions.at(m_widgetPositionNames.indexOf(position));
       m_desktopWidget.setPosition(point);
     }
   }
@@ -420,7 +420,7 @@ void PlayerManager::onOutputAvailable()
         computePositions();
 
         const auto ratio = m_size/100.0;
-        m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+        m_desktopWidget.setVideoSize(computeSize(ratio));
 
         const auto widgetPos = m_widgetPosition.isEmpty() ? 0 : m_widgetPositionNames.indexOf(m_widgetPosition);
         m_desktopWidget.setPosition(m_widgetPositions.at(widgetPos));
@@ -450,9 +450,9 @@ bool PlayerManager::isPlaying() const
 //-----------------------------------------------------------------
 const QSize PlayerManager::videoSize() const
 {
-  auto ratio = m_size/100.0;
+  const auto ratio = m_size/100.0;
 
-  return QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)};
+  return computeSize(ratio);
 }
 
 //-----------------------------------------------------------------
@@ -655,20 +655,22 @@ void PlayerManager::setFullScreen(const QScreen *screen)
     const auto geometry = screen->geometry();
     const auto ratio = std::min(static_cast<double>(geometry.width()) / m_videoWidth,
                                 static_cast<double>(geometry.height()) / m_videoHeight);
-    const auto newSize = QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)};
-    const QPoint origin = QPoint((geometry.width() - newSize.width())/2,(geometry.height() - newSize.height())/2);
+    std::function<double(double)> ceilFunc = [](double x){ return std::ceil(x); };
+    const auto size = computeSize(ratio, ceilFunc);
+    const QPoint origin = QPoint((geometry.width() - size.width())/2,(geometry.height() - size.height())/2);
 
     m_desktopWidget.setOpacity(100);
-    m_desktopWidget.setVideoSize(newSize);
+    m_desktopWidget.setVideoSize(size);
     m_desktopWidget.setPosition(geometry.topLeft() + origin);
   }
   else
   {
     const auto position = m_widgetPositions.at(m_widgetPositionNames.indexOf(m_widgetPosition));
     const auto ratio = m_size/100.0;
+    const auto size = computeSize(ratio);
 
     m_desktopWidget.setOpacity(m_opacity);
-    m_desktopWidget.setVideoSize(QSize{static_cast<int>(m_videoWidth*ratio), static_cast<int>(m_videoHeight*ratio)});
+    m_desktopWidget.setVideoSize(size);
     m_desktopWidget.setPosition(position);
   }
 }
@@ -684,4 +686,10 @@ void PlayerManager::unloadSubtitles()
 void PlayerManager::askTime()
 {
   m_process.write(QString("%1get_time_pos\n").arg(m_paused ? "pausing " : "").toUtf8());
+}
+
+//-----------------------------------------------------------------
+QString PlayerManager::filename() const
+{
+  return m_file;
 }

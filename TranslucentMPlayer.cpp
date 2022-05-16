@@ -275,8 +275,6 @@ void TranslucentMPlayer::openMediaFile()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::onPlaylistItemTriggered()
 {
-  uncheckFullscreenActions();
-
   auto action = qobject_cast<QAction *>(sender());
   if(action)
   {
@@ -453,8 +451,6 @@ void TranslucentMPlayer::onConfigTriggered()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::onManagerFinishedPlaying()
 {
-  uncheckFullscreenActions();
-
   int index = 0;
   auto actions = m_playListMenu->actions();
   for(auto action: actions)
@@ -536,10 +532,12 @@ void TranslucentMPlayer::onMenuHide()
 //-----------------------------------------------------------------
 void TranslucentMPlayer::play(const QString &fileName)
 {
-  if(m_icon.contextMenu()->isVisible())
-  {
-    m_icon.contextMenu()->hide();
-  }
+  if(m_manager->isPlaying() && m_manager->filename().compare(fileName, Qt::CaseInsensitive) == 0)
+    return;
+
+  if(m_icon.contextMenu()->isVisible()) m_icon.contextMenu()->hide();
+
+  uncheckFullscreenActions();
 
   m_volume = m_volumeWidget->isMuted() ? m_volumeWidget->volume() : m_volume;
 
