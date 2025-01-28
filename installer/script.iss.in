@@ -3,7 +3,7 @@
 [Setup]
 AppName=Translucent MPlayer Frontend
 AppVersion=@TRANSLUCENTMPLAYER_VERSION_MAJOR@.@TRANSLUCENTMPLAYER_VERSION_MINOR@.@TRANSLUCENTMPLAYER_VERSION_PATCH@
-DefaultDirName={pf64}\Translucent MPlayer
+DefaultDirName={commonpf64}\Translucent MPlayer
 DefaultGroupName=Translucent MPlayer
 OutputDir=@PROJECT_BINARY_DIR@
 AppComments=Translucent MPlayer

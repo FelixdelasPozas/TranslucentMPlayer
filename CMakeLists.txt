@@ -10,7 +10,7 @@ cmake_policy(SET CMP0020 OLD)
 # Version Number
 set (TRANSLUCENTMPLAYER_VERSION_MAJOR 1)
 set (TRANSLUCENTMPLAYER_VERSION_MINOR 3)
-set (TRANSLUCENTMPLAYER_VERSION_PATCH 1)
+set (TRANSLUCENTMPLAYER_VERSION_PATCH 2)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -50,7 +50,7 @@ include_directories(
   ${Qt5Multimedia_INCLUDE_DIRS}
   )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-deprecated -std=c++11 -mwindows")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-deprecated -std=c++17 -mwindows")
 
 # Add Qt Resource files
 qt5_add_resources(RESOURCES
@@ -79,6 +79,7 @@ set (CORE_SOURCES
   VideoConfigurationDialog.cpp
   VolumeWidgetAction.cpp
   ProgressWidgetAction.cpp
+  Utils.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

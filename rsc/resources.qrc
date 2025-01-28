@@ -12,6 +12,7 @@
 	<file>pause.svg</file>
 	<file>speaker.svg</file>
 	<file>mute.svg</file>
-  <file>fullscreen.svg</file>
+    <file>fullscreen.svg</file>
+	<file>kofi_logo.png</file>
   </qresource>
 </RCC>

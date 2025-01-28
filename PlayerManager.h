@@ -289,8 +289,8 @@ class PlayerManager
      * \param[in] ratio Double ratio value.
      *
      */
-    constexpr inline QSize computeSize(const double ratio,
-                                       std::function<double(double)> func = [](double x){ return std::nearbyint(x); } ) const
+    inline QSize computeSize(const double ratio,
+                             std::function<double(double)> func = [](double x){ return std::nearbyint(x); } ) const
     {
       return QSize{static_cast<int>(func(m_videoWidth*ratio)),
                    static_cast<int>(func(m_videoHeight*ratio))};
