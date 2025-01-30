@@ -34,7 +34,8 @@ The following libraries are required:
 * [MPlayer](http://www.mplayerhq.hu/).
 
 # Install
-Download and execute the latest installer from the [releases](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases) page. 
+
+Translucent MPlayer is available for Windows 7 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
 
 # Screenshots
 
