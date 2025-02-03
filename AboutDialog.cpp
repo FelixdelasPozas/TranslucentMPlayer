@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "AboutDialog.h"
+#include <AboutDialog.h>
 
 // Qt
 #include <QtGlobal>
@@ -26,7 +26,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-const QString AboutDialog::VERSION = QString("version 1.3.2");
+const QString AboutDialog::VERSION = QString("version 1.4.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)

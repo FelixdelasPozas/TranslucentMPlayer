@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "ProgressWidgetAction.h"
+#include <ProgressWidgetAction.h>
 
 // Qt
 #include <QObject>
@@ -139,12 +139,10 @@ QWidget* ProgressWidgetAction::createWidget(QWidget* parent)
   auto layout = new QVBoxLayout;
   layout->setSpacing(3);
   layout->setContentsMargins(3,3,3,3);
-  layout->setMargin(3);
 
   auto layout1 = new QHBoxLayout;
   layout1->setSpacing(0);
   layout1->setContentsMargins(0,0,0,0);
-  layout1->setMargin(0);
 
   auto button = new QPushButton();
   button->setCheckable(true);
@@ -166,7 +164,6 @@ QWidget* ProgressWidgetAction::createWidget(QWidget* parent)
   auto layout2 = new QHBoxLayout;
   layout2->setSpacing(0);
   layout2->setContentsMargins(0,0,0,0);
-  layout2->setMargin(0);
 
   auto currentTime = new QLabel();
   currentTime->setText(QString("%1:%2:%3").arg(m_current/3600, 2, 10, QChar('0')).arg((m_current/60)%60, 2, 10, QChar('0')).arg(m_current%60, 2, 10, QChar('0')));

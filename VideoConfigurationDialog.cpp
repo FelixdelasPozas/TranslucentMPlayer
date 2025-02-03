@@ -18,8 +18,8 @@
  */
 
 // Project
-#include "VideoConfigurationDialog.h"
-#include "PlayerManager.h"
+#include <VideoConfigurationDialog.h>
+#include <PlayerManager.h>
 
 // Qt
 #include <QString>

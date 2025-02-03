@@ -27,7 +27,6 @@
 #include <QDebug>
 #include <QScreen>
 #include <QApplication>
-#include <QDesktopWidget>
 
 const QStringList PlayerManager::POSITION_NAMES = { QString("Top Left"),    QString("Top Center"),    QString("Top Right"),
                                                     QString("Center Left"), QString("Center"),        QString("Center Right"),
@@ -403,7 +402,8 @@ void PlayerManager::onOutputAvailable()
       return;
     }
 
-    auto parts = dataString.split(' ', QString::SkipEmptyParts);
+    auto parts = dataString.split(' ');
+    parts.removeAll(QString(""));
     if(!parts.isEmpty() && (parts[0].compare("VO:") == 0))
     {
       auto resolution = parts[2].split('x');
@@ -585,8 +585,8 @@ void PlayerManager::computePositionsNames()
     m_widgetPositionNames << QString("Global ") + position;
   }
 
-  auto desktop = QApplication::desktop();
-  for (int i = 0; i < desktop->numScreens(); ++i)
+  auto desktopScreens = QApplication::screens().size();
+  for (int i = 0; i < desktopScreens; ++i)
   {
     for(auto position: POSITION_NAMES)
     {
@@ -600,12 +600,12 @@ void PlayerManager::computePositions()
 {
   m_widgetPositions.clear();
 
-  auto desktop = QApplication::desktop();
-  computeRectPositions(desktop->geometry());
+  const auto screens = QApplication::screens();
+  computeRectPositions(QRect{screens.at(0)->virtualGeometry()});
 
-  for (int i = 0; i < desktop->numScreens(); ++i)
+  for (int i = 0; i < screens.size(); ++i)
   {
-    computeRectPositions(desktop->screenGeometry(i));
+    computeRectPositions(screens.at(i)->geometry());
   }
 }
 
@@ -639,7 +639,6 @@ void PlayerManager::loadSubtitles()
   if(!subtitleFiles.isEmpty())
   {
     auto file = path.absoluteFilePath(subtitleFiles.first());
-
     m_process.write(QString("%1sub_load \"%2\"\n").arg(m_paused ? "pausing " : "").arg(file).toUtf8());
   }
 

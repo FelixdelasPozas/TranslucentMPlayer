@@ -20,6 +20,7 @@
 #ifndef PROGRESSWIDGETACTION_H_
 #define PROGRESSWIDGETACTION_H_
 
+// Qt
 #include <QWidgetAction>
 
 /** \class ProjectWidgetAction

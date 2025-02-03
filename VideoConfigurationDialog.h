@@ -42,7 +42,7 @@ class VideoConfigurationDialog
      * \param[in] flags window flags.
      *
      */
-    explicit VideoConfigurationDialog(PlayerManager *manager, QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
+    explicit VideoConfigurationDialog(PlayerManager *manager, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
     /** \brief VideoConfigurationDialog class virtual destructor.
      *

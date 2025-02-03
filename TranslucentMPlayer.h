@@ -29,6 +29,7 @@
 #include <QObject>
 
 class QProcess;
+class QSettings;
 class PlayerManager;
 class ProgressWidgetAction;
 class VolumeWidgetAction;
@@ -45,7 +46,7 @@ class TranslucentMPlayer
     /** \brief TranslucentMPlayer class constructor.
      *
      */
-    explicit TranslucentMPlayer();
+    explicit TranslucentMPlayer(QObject *parent = nullptr);
 
     /** \brief TranslucentMPlayer class virtual destructor.
      *
@@ -162,6 +163,11 @@ class TranslucentMPlayer
      *
      */
     void uncheckFullscreenActions();
+
+    /** \brief Returns the application settings depending on the presence of the INI file.
+     *
+     */
+    std::unique_ptr<QSettings> applicationSettings() const;
 
     static const QString SETTINGS_FILENAME;
     static const QString KEY_MPLAYER_PATH;

@@ -37,7 +37,7 @@ class DesktopWidget
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit DesktopWidget(QWidget *parent);
+    explicit DesktopWidget(QWidget *parent = nullptr);
 
     /** \brief DesktopWidget class virtual destructor.
      *

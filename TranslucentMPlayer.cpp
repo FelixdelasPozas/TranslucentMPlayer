@@ -18,14 +18,14 @@
  */
 
 // Project
-#include "TranslucentMPlayer.h"
-#include "ConfigurationDialog.h"
-#include "DesktopWidget.h"
-#include "AboutDialog.h"
-#include "PlayerManager.h"
-#include "VideoConfigurationDialog.h"
-#include "ProgressWidgetAction.h"
-#include "VolumeWidgetAction.h"
+#include <TranslucentMPlayer.h>
+#include <ConfigurationDialog.h>
+#include <DesktopWidget.h>
+#include <AboutDialog.h>
+#include <PlayerManager.h>
+#include <VideoConfigurationDialog.h>
+#include <ProgressWidgetAction.h>
+#include <VolumeWidgetAction.h>
 
 // Qt
 #include <QFileDialog>
@@ -59,9 +59,12 @@ const QString FILES_FILTER_ALL   = QObject::tr("All files (*.*)");
 
 constexpr const char SCREEN_INDEX[] = "screenInt";
 
+const QString INI_FILENAME{"TranslucentMplayer.ini"};
+
 //-----------------------------------------------------------------
-TranslucentMPlayer::TranslucentMPlayer()
-: m_manager{nullptr}
+TranslucentMPlayer::TranslucentMPlayer(QObject *parent)
+: QObject  {parent}
+, m_manager{nullptr}
 , m_icon   {QIcon(":TranslucentMPlayer/film.svg"), this}
 , m_paused {false}
 {
@@ -96,6 +99,7 @@ TranslucentMPlayer::TranslucentMPlayer()
 
   m_fullscreenMenu = new QMenu{"Fullscreen"};
   m_fullscreenMenu->setIcon(QIcon{":/TranslucentMPlayer/fullscreen.svg"});
+
   unsigned int i = 1;
   for(auto screen: qApp->screens())
   {
@@ -169,6 +173,18 @@ bool TranslucentMPlayer::start()
     onConfigTriggered();
   }
 
+  if(m_playerPath.isEmpty())
+  {
+    QMessageBox dialog;
+    dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+    dialog.setWindowTitle(tr("Invalid Mplayer"));
+    dialog.setText(tr("TranslucentMplayer cannot start without a valid Mplayer executable!\nApplication will now quit."));
+    dialog.setStandardButtons(QMessageBox::Button::Ok);
+    dialog.setIcon(QMessageBox::Information);
+    dialog.exec();
+    return false;
+  }
+
   openMediaFile();
 
   if(m_playList.isEmpty())
@@ -205,16 +221,14 @@ void TranslucentMPlayer::openMediaFile()
   openDialog.setWindowTitle(tr("Open media file"));
   openDialog.setDirectory(directory);
   openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
-  openDialog.setReadOnly(true);
+  openDialog.setOption(QFileDialog::ReadOnly, true);
   openDialog.setNameFilters(filters);
   openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
   openDialog.setLabelText(QFileDialog::Reject, (m_playList.isEmpty() ? tr("Quit") : tr("Cancel")));
   openDialog.setFileMode(QFileDialog::ExistingFiles);
 
   if((openDialog.exec() != QDialog::Accepted) || openDialog.selectedFiles().isEmpty())
-  {
     return;
-  }
 
   auto files = openDialog.selectedFiles();
   QStringList invalidFiles, validFiles;
@@ -245,6 +259,7 @@ void TranslucentMPlayer::openMediaFile()
     QMessageBox dialog;
     dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
     dialog.setWindowTitle(tr("Files already in the playlist"));
+    dialog.setStandardButtons(QMessageBox::Button::Ok);
     dialog.setIcon(QMessageBox::Information);
 
     auto message = tr("Can't add the following files, they're already in the playlist.\n\n");
@@ -331,7 +346,7 @@ void TranslucentMPlayer::onClearPlaylistTriggered()
   openDialog.setWindowTitle(tr("Open media file"));
   openDialog.setDirectory(directory);
   openDialog.setOption(QFileDialog::DontUseNativeDialog, true);
-  openDialog.setReadOnly(true);
+  openDialog.setOption(QFileDialog::ReadOnly, true);
   openDialog.setNameFilters(filters);
   openDialog.setLabelText(QFileDialog::Accept, tr("Open Video File(s)"));
   openDialog.setLabelText(QFileDialog::Reject, (m_playList.isEmpty() ? tr("Quit") : tr("Cancel")));
@@ -362,6 +377,7 @@ void TranslucentMPlayer::onClearPlaylistTriggered()
     dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
     dialog.setWindowTitle(tr("Files already in the playlist"));
     dialog.setIcon(QMessageBox::Information);
+    dialog.setStandardButtons(QMessageBox::Button::Ok);
 
     auto message = tr("Can't add the following files, they're already in the playlist.\n\n");
     for (auto file : invalidFiles)
@@ -428,6 +444,7 @@ void TranslucentMPlayer::onConfigTriggered()
   if((conf.exec() == QDialog::Accepted) && (conf.mplayerPath() != m_playerPath))
   {
     m_playerPath = conf.mplayerPath();
+    if(m_playerPath.isEmpty()) return;
 
     m_manager->setMPlayerPath(m_playerPath);
 
@@ -523,15 +540,25 @@ void TranslucentMPlayer::onMenuShow()
 void TranslucentMPlayer::onMenuHide()
 {
   if(!m_paused)
-  {
     m_manager->enableTiming(false);
-  }
+
   disconnect(m_manager, SIGNAL(time(int)), m_progressWidget, SLOT(setProgress(int)));
 }
 
 //-----------------------------------------------------------------
 void TranslucentMPlayer::play(const QString &fileName)
 {
+  if(m_playerPath.isEmpty())
+  {
+    QMessageBox dialog;
+    dialog.setWindowIcon(QIcon(":/TranslucentMPlayer/film.svg"));
+    dialog.setWindowTitle(tr("Not configured, missing Mplayer executable!"));
+    dialog.setIcon(QMessageBox::Icon::Critical);
+    dialog.setStandardButtons(QMessageBox::Button::Ok);
+    dialog.exec();
+    return;
+  }
+
   if(m_manager->isPlaying() && m_manager->filename().compare(fileName, Qt::CaseInsensitive) == 0)
     return;
 
@@ -556,20 +583,20 @@ void TranslucentMPlayer::play(const QString &fileName)
 //-----------------------------------------------------------------
 void TranslucentMPlayer::loadSettings()
 {
-  QSettings settings("Felix de las Pozas Alvarez", "TranslucentMplayer");
+  const auto settings = applicationSettings();
 
-  m_playerPath       = settings.value(KEY_MPLAYER_PATH,     QString()).toString();
-  m_lastPath         = settings.value(KEY_LAST_DIR,         QString()).toString();
-  m_opacity          = settings.value(KEY_OPACITY,          60).toInt();
-  m_volume           = settings.value(KEY_VOLUME,           50).toInt();
-  m_size             = settings.value(KEY_SIZE,             100).toInt();
-  m_position         = settings.value(KEY_VIDEO_POSITION,   QString()).toString();
-  m_brightness       = settings.value(KEY_VIDEO_BRIGHTNESS, 0).toInt();
-  m_contrast         = settings.value(KEY_VIDEO_CONTRAST,   0).toInt();
-  m_gamma            = settings.value(KEY_VIDEO_GAMMA,      0).toInt();
-  m_hue              = settings.value(KEY_VIDEO_HUE,        0).toInt();
-  m_saturation       = settings.value(KEY_VIDEO_SATURATION, 0).toInt();
-  m_subtitlesEnabled = settings.value(KEY_SHOW_SUBTITLES,   false).toBool();
+  m_playerPath       = settings->value(KEY_MPLAYER_PATH,     QString()).toString();
+  m_lastPath         = settings->value(KEY_LAST_DIR,         QString()).toString();
+  m_opacity          = settings->value(KEY_OPACITY,          60).toInt();
+  m_volume           = settings->value(KEY_VOLUME,           50).toInt();
+  m_size             = settings->value(KEY_SIZE,             100).toInt();
+  m_position         = settings->value(KEY_VIDEO_POSITION,   QString()).toString();
+  m_brightness       = settings->value(KEY_VIDEO_BRIGHTNESS, 0).toInt();
+  m_contrast         = settings->value(KEY_VIDEO_CONTRAST,   0).toInt();
+  m_gamma            = settings->value(KEY_VIDEO_GAMMA,      0).toInt();
+  m_hue              = settings->value(KEY_VIDEO_HUE,        0).toInt();
+  m_saturation       = settings->value(KEY_VIDEO_SATURATION, 0).toInt();
+  m_subtitlesEnabled = settings->value(KEY_SHOW_SUBTITLES,   false).toBool();
 }
 
 //-----------------------------------------------------------------
@@ -577,20 +604,21 @@ void TranslucentMPlayer::saveSettings()
 {
   if(m_manager)
   {
-    QSettings settings("Felix de las Pozas Alvarez", "TranslucentMplayer");
+    auto settings = applicationSettings();
 
-    settings.setValue(KEY_MPLAYER_PATH,     m_playerPath);
-    settings.setValue(KEY_LAST_DIR,         m_lastPath);
-    settings.setValue(KEY_OPACITY,          m_manager->opacity());
-    settings.setValue(KEY_VOLUME,           m_manager->volume());
-    settings.setValue(KEY_SIZE,             m_manager->size());
-    settings.setValue(KEY_VIDEO_POSITION,   m_manager->widgetPosition());
-    settings.setValue(KEY_VIDEO_BRIGHTNESS, m_manager->brightness());
-    settings.setValue(KEY_VIDEO_CONTRAST,   m_manager->contrast());
-    settings.setValue(KEY_VIDEO_GAMMA,      m_manager->gamma());
-    settings.setValue(KEY_VIDEO_HUE,        m_manager->hue());
-    settings.setValue(KEY_VIDEO_SATURATION, m_manager->saturation());
-    settings.setValue(KEY_SHOW_SUBTITLES,   m_manager->subtitlesEnabled());
+    settings->setValue(KEY_MPLAYER_PATH,     m_playerPath);
+    settings->setValue(KEY_LAST_DIR,         m_lastPath);
+    settings->setValue(KEY_OPACITY,          m_manager->opacity());
+    settings->setValue(KEY_VOLUME,           m_manager->volume());
+    settings->setValue(KEY_SIZE,             m_manager->size());
+    settings->setValue(KEY_VIDEO_POSITION,   m_manager->widgetPosition());
+    settings->setValue(KEY_VIDEO_BRIGHTNESS, m_manager->brightness());
+    settings->setValue(KEY_VIDEO_CONTRAST,   m_manager->contrast());
+    settings->setValue(KEY_VIDEO_GAMMA,      m_manager->gamma());
+    settings->setValue(KEY_VIDEO_HUE,        m_manager->hue());
+    settings->setValue(KEY_VIDEO_SATURATION, m_manager->saturation());
+    settings->setValue(KEY_SHOW_SUBTITLES,   m_manager->subtitlesEnabled());
+    settings->sync();
   }
 }
 
@@ -637,4 +665,16 @@ void TranslucentMPlayer::uncheckFullscreenActions()
     a->setChecked(false);
     a->blockSignals(false);
   }
+}
+
+//----------------------------------------------------------------
+std::unique_ptr<QSettings> TranslucentMPlayer::applicationSettings() const
+{
+  QDir applicationDir{QCoreApplication::applicationDirPath()};
+  if(applicationDir.exists(INI_FILENAME))
+  {
+    return std::make_unique<QSettings>(applicationDir.absoluteFilePath(INI_FILENAME), QSettings::IniFormat);
+  }
+
+  return std::make_unique<QSettings>("Felix de las Pozas Alvarez", "TranslucentMplayer");
 }

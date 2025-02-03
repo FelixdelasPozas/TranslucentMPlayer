@@ -21,7 +21,7 @@
 #define PLAYERMANAGER_H_
 
 // Project
-#include "DesktopWidget.h"
+#include <DesktopWidget.h>
 
 // Qt
 #include <QProcess>

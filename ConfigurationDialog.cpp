@@ -18,11 +18,10 @@
  */
 
 // Project
-#include "TranslucentMPlayer.h"
-#include "ConfigurationDialog.h"
+#include <TranslucentMPlayer.h>
+#include <ConfigurationDialog.h>
 
 // Qt
-#include <QSettings>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
@@ -69,7 +68,8 @@ const QString ConfigurationDialog::mplayerVersion()
     process.close();
 
     auto versionString = QString().fromStdString(output.toStdString());
-    auto parts = versionString.split(" ", QString::SkipEmptyParts);
+    auto parts = versionString.split(" ");
+    parts.removeAll(QString());
 
     if(!parts.isEmpty() && parts.first().compare("MPlayer") == 0)
     {
@@ -124,6 +124,10 @@ void ConfigurationDialog::closeEvent(QCloseEvent* e)
       QMessageBox::warning(this, tr("Invalid executable"), tr("Unable to identify the executable as a valid MPlayer executable. Unable to get the version string."));
       return;
     }
+  }
+  else
+  {
+    m_playerPath->clear();
   }
 
   QDialog::closeEvent(e);

@@ -39,7 +39,7 @@ class ConfigurationDialog
      * \parma[in] flags window flags.
      *
      */
-    explicit ConfigurationDialog(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
+    explicit ConfigurationDialog(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
     /** \brief ConfigurationDialog class virtual destructor.
      *

@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "VolumeWidgetAction.h"
+#include <VolumeWidgetAction.h>
 
 // Qt
 #include <QPushButton>
@@ -128,7 +128,6 @@ QWidget* VolumeWidgetAction::createWidget(QWidget* parent)
   auto layout = new QHBoxLayout;
   layout->setSpacing(3);
   layout->setContentsMargins(3,3,3,3);
-  layout->setMargin(3);
 
   auto button = new QPushButton();
   button->setCheckable(true);
