@@ -30,7 +30,7 @@ Translucent MPlayer it's not a full featured frontent, it only supports a minima
 
 ## External dependencies
 The following libraries are required:
-* [Qt 5 opensource framework](http://www.qt.io/).
+* [Qt Library](http://www.qt.io/).
 * [MPlayer](http://www.mplayerhq.hu/).
 
 # Install
@@ -43,19 +43,19 @@ Translucent MPlayer is available for Windows 7 onwards. You can download the lat
 
 MPlayer executable configuration and detection.
 
-![configuration](https://cloud.githubusercontent.com/assets/12167134/11912577/19d07d4a-a643-11e5-998c-95366e4cc673.jpg)
+![configuration](https://github.com/user-attachments/assets/8f31b8cc-44df-44f6-b9e4-8fa73b2c8a8a)
 
 Video display settings. 
 
-![videoconf](https://cloud.githubusercontent.com/assets/12167134/11912580/1a3d6626-a643-11e5-940e-6dc2b907a18c.jpg)
+![videoconf](https://github.com/user-attachments/assets/f756273e-89a5-4cd7-99c7-07cfeb79cf4d)
 
 The video is completely transparent to events so the only way to control it is from the tray menu. The menu has widgets to play & pause the current video, volume modification & mute, the current play list and full-screen mode toggle. 
 
-![trayicon](https://user-images.githubusercontent.com/12167134/168468708-55e3f730-7d7e-454c-bef4-6a4feb4a05be.png)
+![trayicon](https://github.com/user-attachments/assets/b1b0927f-32c4-4aa7-b6e4-fc3c5a806f0a)
 
 Watching a movie while coding...
 
-![example](https://cloud.githubusercontent.com/assets/12167134/11912578/19d569fe-a643-11e5-9a27-7e2f6e7ae9c2.jpg)
+![example](https://github.com/user-attachments/assets/552cf476-56a2-47c4-b8a9-c11c886d6da2)
 
 # Repository information
 
