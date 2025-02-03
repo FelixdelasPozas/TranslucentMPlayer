@@ -39,8 +39,6 @@ Translucent MPlayer is available for Windows 7 onwards. You can download the lat
 
 # Screenshots
 
-> **_NOTE:_**  Some screenshots are from older versions. Latest version might be slightly different. 
-
 MPlayer executable configuration and detection.
 
 ![configuration](https://github.com/user-attachments/assets/8f31b8cc-44df-44f6-b9e4-8fa73b2c8a8a)
