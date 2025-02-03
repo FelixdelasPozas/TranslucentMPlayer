@@ -47,7 +47,7 @@ MPlayer executable configuration and detection.
 
 Video display settings. 
 
-![videoconf](https://github.com/user-attachments/assets/f756273e-89a5-4cd7-99c7-07cfeb79cf4d)
+![videoconf](https://github.com/user-attachments/assets/fccf296e-1957-454c-b0bf-09ae953828f4)
 
 The video is completely transparent to events so the only way to control it is from the tray menu. The menu has widgets to play & pause the current video, volume modification & mute, the current play list and full-screen mode toggle. 
 
