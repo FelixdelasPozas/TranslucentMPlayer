@@ -35,7 +35,9 @@ The following libraries are required:
 
 # Install
 
-Translucent MPlayer is available for Windows 7 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+Translucent MPlayer is available for Windows 10 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+
+The last version compatible with Windows 7 & 8 is version 1.3.2 that you can download [here](https://github.com/FelixdelasPozas/TranslucentMPlayer/releases/tag/1.3.2).
 
 # Screenshots
 
@@ -57,7 +59,7 @@ Watching a movie while coding...
 
 # Repository information
 
-**Version**: 1.4.0
+**Version**: 1.4.1
 
 **Status**: finished
 
@@ -69,5 +71,5 @@ Watching a movie while coding...
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
 | C++                          |   10          | 394         |   286            | 1622 |
 | C/C++ Header                 |   9           | 200         |   578            |  353 |
-| CMake                        |   1           |  16         |     7            |   62 |
-| **Total**                    | **20**        | **610**     | **871**          | **2037** |
+| CMake                        |   1           |  16         |     7            |   63 |
+| **Total**                    | **20**        | **610**     | **871**          | **2038** |

@@ -14,7 +14,7 @@ BEGIN
     VALUE "FileDescription", "Translucent MPlayer"
       VALUE "FileVersion", "@TRANSLUCENTMPLAYER_VERSION_MAJOR@.@TRANSLUCENTMPLAYER_VERSION_MINOR@.@TRANSLUCENTMPLAYER_VERSION_PATCH@"
       VALUE "InternalName", "TranslucentMPlayer"
-      VALUE "LegalCopyright", "GNU Public License"
+      VALUE "LegalCopyright", "(c)2017-@CURRENT_YEAR@ Felix de las Pozas Alvarez"
       VALUE "OriginalFilename", "TranslucentMPlayer.exe"
       VALUE "ProductName", "Translucent MPlayer"
       VALUE "ProductVersion", "@TRANSLUCENTMPLAYER_VERSION_MAJOR@.@TRANSLUCENTMPLAYER_VERSION_MINOR@.@TRANSLUCENTMPLAYER_VERSION_PATCH@"
